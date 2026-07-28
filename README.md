@@ -3,7 +3,7 @@
 Website für Portrait-, Babybauch- und Familienfotografie im Outdoor-Stil.
 Natürliches Licht, echte Momente, keine gestellten Posen.
 
-🔗 **Live:** `https://SilvisPhotos.github.io/silvis-photography` *(nach Aktivierung von GitHub Pages, siehe unten)*
+🔗 **Live:** `https://SilvisPhotos.github.io/Silvis-Photography` *(nach Aktivierung von GitHub Pages, siehe unten)*
 
 ---
 
@@ -45,16 +45,16 @@ Kein Server nötig — einfach `index.html` doppelklicken, sie öffnet sich im B
 2. Gehe zu **Settings → Pages**
 3. Unter **Branch** `main` und `/ (root)` auswählen, dann **Save**
 4. Nach 1–2 Minuten ist die Seite live unter
-   `https://Silvisphotos.github.io/silvis-photography`
+   `https://Silvisphotos.github.io/Silvis-Photography`
 
 ---
 
 ## Eigene Domain verbinden
 
 1. Domain bei einem Registrar registrieren (z. B. IONOS, Strato, Namecheap)
-2. In **Settings → Pages → Custom domain** die Domain eintragen, z. B. `silvis-photography.de`
+2. In **Settings → Pages → Custom domain** die Domain eintragen, z. B. `Silvis-Photography.de`
 3. Beim Registrar in den DNS-Einstellungen:
-   - `www`-Subdomain → **CNAME** auf `DEIN-USERNAME.github.io`
+   - `www`-Subdomain → **CNAME** auf `SilvisPhotos.github.io`
    - Root-Domain (ohne www) → **A-Records** auf die IP-Adressen von GitHub Pages (werden nach Eintragen der Custom Domain in den Pages-Settings angezeigt)
 4. DNS-Änderungen können ein paar Stunden brauchen, bis sie greifen
 
