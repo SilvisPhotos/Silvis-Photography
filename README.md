@@ -3,7 +3,7 @@
 Website für Portrait-, Babybauch- und Familienfotografie im Outdoor-Stil.
 Natürliches Licht, echte Momente, keine gestellten Posen.
 
-🔗 **Live:** `https://DEIN-USERNAME.github.io/silvis-photography` *(nach Aktivierung von GitHub Pages, siehe unten)*
+🔗 **Live:** `https://SilvisPhotos.github.io/silvis-photography` *(nach Aktivierung von GitHub Pages, siehe unten)*
 
 ---
 
@@ -45,7 +45,7 @@ Kein Server nötig — einfach `index.html` doppelklicken, sie öffnet sich im B
 2. Gehe zu **Settings → Pages**
 3. Unter **Branch** `main` und `/ (root)` auswählen, dann **Save**
 4. Nach 1–2 Minuten ist die Seite live unter
-   `https://DEIN-USERNAME.github.io/silvis-photography`
+   `https://Silvisphotos.github.io/silvis-photography`
 
 ---
 
