@@ -81,7 +81,7 @@
   .btn-primary:hover{ background:var(--moss-deep); }
   .btn-text{ text-decoration:none; font-size:14px; color:var(--ink); border-bottom:1px solid var(--ink); padding-bottom:2px; }
 
-  /* HERO PHOTO (QUERFORMAT) */
+  /* HERO PHOTO */
   .hero-photo {
     position: relative;
     aspect-ratio: 16 / 9;
@@ -133,11 +133,11 @@
     border-radius: 8px;
     overflow: hidden;
     background-color: var(--sand-deep);
-    aspect-ratio: 2 / 3; /* Klassisches Kamera-Hochformat zeigt mehr Bildinhalt */
+    aspect-ratio: 2 / 3; /* Klassisches Kamera-Hochformat */
   }
 
   .g-item .ph {
-    object-position: top center; /* Richtet den Fokus auf die obere Bildhälfte / Köpfe */
+    object-position: center; /* Ausgewogener Bildfokus für Kinder, Portraits & Bauch */
     transition: transform .6s ease;
   }
 
@@ -195,7 +195,7 @@
   footer a{ text-decoration:none; }
   footer a:hover{ text-decoration:underline; }
 
-  /* MEDIA QUERIES (DESKTOP OPTIMIERUNG) */
+  /* MEDIA QUERIES */
   @media (min-width: 768px) {
     .gallery {
       grid-template-columns: repeat(3, 1fr);
@@ -288,7 +288,8 @@
     
     <div class="gallery">
       <div class="g-item g-tall">
-        <img class="ph" src="images/gallery-1.jpg" alt="Babybauch und Paar Outdoor">
+        <!-- Falls ein Foto oben/unten noch etwas Feinabstimmung braucht, kannst du z.B. style="object-position: top;" nutzen -->
+        <img class="ph" src="images/gallery-1.jpg" alt="Babybauch und Paar Outdoor" style="object-position: top center;">
         <span class="g-tag">Paar</span>
       </div>
       <div class="g-item">
@@ -304,7 +305,7 @@
         <span class="g-tag">Portrait</span>
       </div>
       <div class="g-item">
-        <img class="ph" src="images/gallery-5.jpg" alt="Familienshooting in der Natur">
+        <img class="ph" src="images/gallery-5.jpg" alt="Familienshooting in der Natur" style="object-position: bottom center;">
         <span class="g-tag">Familie Outdoor</span>
       </div>
       <div class="g-item">
