@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGB | Silvis Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* GLOBAL STYLES (Identisch zur Startseite) */
+  :root{
+    --sand:#f3ead9;
+    --sand-deep:#e9dcc3;
+    --moss:#5c6b4f;
+    --moss-deep:#3f4a37;
+    --rose:#c98f76;
+    --ink:#2b2a24;
+    --line: rgba(43,42,36,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--sand);
+    color:var(--ink);
+    font-family:'Jost', sans-serif;
+    font-weight:300;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit; text-decoration: none;}
+  .wrap{ max-width:1140px; margin:0 auto; padding:0 32px; }
+
+  /* NAV */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(243,234,217,0.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{ display:flex; justify-content:space-between; align-items:center; padding:20px 32px; }
+  a.logo { 
+    font-family: 'Fraunces', serif; 
+    font-style: italic; 
+    font-weight: 500; 
+    font-size: 20px; 
+    color: var(--ink); 
+    transition: color 0.2s;
+  }
+  a.logo:hover { color: var(--moss); }
+  nav ul{ list-style:none; display:flex; gap:30px; }
+  nav a.nav-link{ font-size:14px; letter-spacing:0.02em; color:var(--moss-deep); transition:color .2s; }
+  nav a.nav-link:hover{ color:var(--rose); }
+
+  /* LEGAL CONTENT STYLES */
+  .legal-section {
+    padding: 80px 0 100px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .legal-section h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(32px, 4vw, 48px);
+    color: var(--moss);
+    margin-bottom: 20px;
+  }
+  .legal-section .subtitle {
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 50px;
+    display: block;
+  }
+  .legal-section h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--moss);
+    margin: 40px 0 16px 0;
+  }
+  .legal-section p, .legal-section ul {
+    font-size: 16px;
+    color: var(--moss-deep);
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+  .legal-section ul {
+    padding-left: 20px;
+    list-style-type: square;
+  }
+  .legal-section ul li {
+    margin-bottom: 8px;
+  }
+  .legal-section strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .disclaimer {
+    background: var(--sand-deep);
+    padding: 20px;
+    border-left: 4px solid var(--rose);
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+
+  /* FOOTER */
+  footer{ padding:40px 0; border-top:1px solid var(--line); margin-top: 60px;}
+  footer .wrap{ display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--moss-deep); flex-wrap:wrap; gap:16px; }
+  footer ul{ list-style:none; display:flex; gap:20px; }
+  footer a:hover{ text-decoration:underline; }
+
+  @media (max-width: 820px){
+    nav ul{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="index.html" class="logo">Silvis Photography</a>
+    <ul>
+      <li><a href="index.html#services" class="nav-link">Angebot</a></li>
+      <li><a href="index.html#gallery" class="nav-link">Galerie</a></li>
+      <li><a href="index.html#about" class="nav-link">Über mich</a></li>
+      <li><a href="index.html#shooting-guide" class="nav-link">Preise</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="wrap">
+  <div class="legal-section">
+    <span class="subtitle">Rechtliche Rahmenbedingungen</span>
+    <h1>Allgemeine Geschäftsbedingungen</h1>
+    
+    <div class="disclaimer">
+      <strong>Hinweis:</strong> Diese AGB regeln die Zusammenarbeit zwischen uns auf eine faire und transparente Weise.
+    </div>
+
+    <h2>1. Geltungsbereich</h2>
+    <p>Diese Allgemeinen Geschäftsbedingungen (nachfolgend "AGB") gelten für alle Foto-Aufträge, Angebote und Leistungen zwischen Silvis Photography (nachfolgend "Fotografin") und dem Kunden.</p>
+
+    <h2>2. Vertragsschluss & Terminreservierung</h2>
+    <p>Eine Buchung kommt durch die schriftliche Terminbestätigung (z. B. per E-Mail) und die Zahlung der vereinbarten Terminreservierungsgebühr (Anzahlung) zustande. Erst mit Eingang der Anzahlung ist der Termin verbindlich für den Kunden im Kalender der Fotografin geblockt.</p>
+
+    <h2>3. Preise und Zahlungsbedingungen</h2>
+    <p>Es gelten die auf der Website ausgewiesenen oder individuell vereinbarten Preise. <strong>Gemäß § 19 UStG (Kleinunternehmerregelung) wird keine Umsatzsteuer berechnet und demnach auch nicht ausgewiesen.</strong></p>
+    <p>Der restliche Betrag für das gebuchte Shooting-Paket wird nach dem Shooting fällig. Die Bearbeitung der Bilder und die Freigabe der Online-Galerie zum Download erfolgen erst nach vollständigem Zahlungseingang.</p>
+
+    <h2>4. Stornierung & Terminverschiebung</h2>
+    <ul>
+      <li><strong>Kostenfreie Stornierung:</strong> Eine komplette Stornierung oder Verschiebung des Shootings ist bis zu 7 Tage vor dem vereinbarten Termin kostenfrei möglich. Eine bereits geleistete Anzahlung wird in diesem Fall vollständig zurückerstattet.</li>
+      <li><strong>Kurzfristige Absage:</strong> Wird der Termin weniger als 7 Tage vor dem Shooting durch den Kunden abgesagt (ohne triftigen Grund), wird die geleistete Anzahlung als Ausfallhonorar einbehalten, da der Termin so kurzfristig nicht neu vergeben werden kann.</li>
+      <li><strong>Ausnahmen (Triftige Gründe):</strong> Bei unvorhersehbaren Notfällen, wie beispielsweise plötzlicher Krankheit, gilt eine Kulanzregelung. Das Shooting kann in diesem Fall einmalig kostenfrei auf einen Ersatztermin verschoben werden. Die Anzahlung wird auf den neuen Termin angerechnet.</li>
+      <li><strong>Wetterbedingungen:</strong> Bei starkem Regen oder Unwetter wird das Outdoor-Shooting von Seiten der Fotografin kostenfrei verschoben. Leicht bewölkter Himmel oder fehlender Sonnenschein stellen keinen Stornierungsgrund dar.</li>
+    </ul>
+
+    <h2>5. Urheberrecht & Nutzungsrechte</h2>
+    <p>Das Urheberrecht an allen angefertigten Fotografien verbleibt bei der Fotografin. Der Kunde erwirbt an den Bildern einfache Nutzungsrechte für den privaten Gebrauch (z. B. private Social-Media-Profile, Prints für die Familie). Eine kommerzielle Nutzung oder die Weitergabe an Dritte (z. B. Dienstleister) bedarf der vorherigen schriftlichen Zustimmung der Fotografin.</p>
+    <p>Die Bilder dürfen durch den Kunden nicht mit eigenen Filtern (z. B. Instagram-Filtern) oder anderweitigen Bearbeitungen verändert werden, da der Bildstil Teil der künstlerischen Arbeit der Fotografin ist. Bei Veröffentlichungen auf Social Media (z. B. Instagram) freut sich die Fotografin über eine Verlinkung (@silvisphotogallery).</p>
+
+    <h2>6. Bildstil & Künstlerische Gestaltungsfreiheit</h2>
+    <p>Der Kunde ist sich bewusst, dass der individuelle fotografische Stil der Fotografin maßgeblich für die Buchung ist. Reklamationen, die sich auf die künstlerische Gestaltungsfreiheit (z. B. Bildaufbau, Farbgebung, natürliche Bearbeitung) beziehen, sind ausgeschlossen.</p>
+
+    <h2>7. Haftung</h2>
+    <p>Die Fotografin haftet nur für Vorsatz und grobe Fahrlässigkeit. Sollte es durch höhere Gewalt oder technische Defekte (z. B. Defekt der Speicherkarte) zu einem Verlust der Bilder kommen, beschränkt sich die Haftung auf die Rückerstattung der bereits geleisteten Zahlungen. Darüber hinausgehende Ansprüche sind ausgeschlossen.</p>
+    
+    <p style="margin-top: 40px; font-size: 14px;">Stand: Juli 2026</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Silvis Photography</span>
+    <span>Großbottwar & Umgebung</span>
+    <ul>
+      <li><a href="agb.html">AGB</a></li>
+      <li><a href="impressum.html">Impressum</a></li>
+      <li><a href="datenschutz.html">Datenschutz</a></li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>
