@@ -81,7 +81,7 @@
   .btn-primary:hover{ background:var(--moss-deep); }
   .btn-text{ text-decoration:none; font-size:14px; color:var(--ink); border-bottom:1px solid var(--ink); padding-bottom:2px; }
 
-  /* HERO PHOTO (QUERFORMAT ANPASSUNG) */
+  /* HERO PHOTO (QUERFORMAT) */
   .hero-photo {
     position: relative;
     aspect-ratio: 16 / 9;
@@ -133,10 +133,11 @@
     border-radius: 8px;
     overflow: hidden;
     background-color: var(--sand-deep);
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 2 / 3; /* Klassisches Kamera-Hochformat zeigt mehr Bildinhalt */
   }
 
   .g-item .ph {
+    object-position: top center; /* Richtet den Fokus auf die obere Bildhälfte / Köpfe */
     transition: transform .6s ease;
   }
 
