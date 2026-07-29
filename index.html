@@ -133,11 +133,11 @@
     border-radius: 8px;
     overflow: hidden;
     background-color: var(--sand-deep);
-    aspect-ratio: 2 / 3; /* Klassisches Kamera-Hochformat */
+    aspect-ratio: 2 / 3;
   }
 
   .g-item .ph {
-    object-position: center; /* Ausgewogener Bildfokus für Kinder, Portraits & Bauch */
+    object-position: center;
     transition: transform .6s ease;
   }
 
@@ -175,15 +175,46 @@
   .about p{ font-size:16px; color:var(--moss-deep); margin-bottom:16px; max-width:520px; }
   .about strong{ color:var(--ink); font-weight:500; }
 
-  /* CONTACT */
+  /* CONTACT & FORMULAR STYLES */
   #contact{ border-bottom:none; }
-  .contact-inner{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:30px; }
-  .contact-inner a.email{
-    font-family:'Fraunces', serif; font-style:italic; font-size:clamp(24px,4vw,38px);
-    text-decoration:none; border-bottom:1px solid var(--ink); padding-bottom:4px; color:var(--moss);
-    transition:color 0.2s;
+  .contact-form {
+    max-width: 700px;
   }
-  .contact-inner a.email:hover{ color:var(--rose); }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group label {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--moss-deep);
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--moss);
+  }
+
+  .contact-inner{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px; }
   .socials{ display:flex; gap:22px; font-size:14px; }
   .socials a{ text-decoration:none; color:var(--moss-deep); border-bottom:1px solid transparent; transition:all .2s; }
   .socials a:hover{ color:var(--rose); border-bottom-color:var(--rose); }
@@ -212,6 +243,10 @@
     .services{ grid-template-columns:1fr; }
     .about{ grid-template-columns:1fr; }
     nav ul{ display:none; }
+  }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -288,29 +323,28 @@
     
     <div class="gallery">
       <div class="g-item g-tall">
-        <!-- Falls ein Foto oben/unten noch etwas Feinabstimmung braucht, kannst du z.B. style="object-position: top;" nutzen -->
         <img class="ph" src="images/gallery-1.jpg" alt="Babybauch und Paar Outdoor" style="object-position: top center;">
-        
+        <span class="g-tag">Paar</span>
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-2.jpg" alt="Portrait im Freien">
-        
+        <span class="g-tag">Portrait</span>
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-3.jpg" alt="Babybauch Foto im Abendlicht">
-        
+        <span class="g-tag">Babybauch</span>
       </div>
       <div class="g-item g-landscape">
         <img class="ph" src="images/gallery-4.jpg" alt="Authentisches Portrait">
-       
+        <span class="g-tag">Portrait</span>
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-5.jpg" alt="Familienshooting in der Natur" style="object-position: bottom center;">
-        
+        <span class="g-tag">Familie Outdoor</span>
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-6.jpg" alt="Babybauch Shooting">
-        
+        <span class="g-tag">Familie</span>
       </div>
     </div>
 
@@ -348,47 +382,68 @@
   </div>
 </section>
 
-/* FORMULAR STYLES */
-  .contact-form {
-    max-width: 700px;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .form-group label {
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    color: var(--moss-deep);
-  }
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 12px 16px;
-    font-family: inherit;
-    font-size: 14px;
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
-    border-color: var(--moss);
-  }
+<section id="contact">
+  <div class="wrap">
+    <div class="section-label">Kontakt</div>
+    <h2 style="margin-bottom: 12px;">Lass uns deine Geschichte festhalten.</h2>
+    <p style="margin-bottom: 30px; color: var(--moss-deep);">
+      Schreib mir einfach eine Nachricht oder erstelle direkt eine Anfrage für dein Wunschshooting.
+    </p>
 
-  @media (max-width: 600px) {
-    .form-grid { grid-template-columns: 1fr; }
-  }
+    <!-- FORMULAR -->
+    <form action="https://formsubmit.co/kontakt@silvis-photography.com" method="POST" class="contact-form">
+      
+      <input type="text" name="_honey" style="display:none">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_subject" value="Neue Shooting-Anfrage über die Website!">
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="name">Dein Name *</label>
+          <input type="text" id="name" name="Name" required placeholder="z. B. Laura">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Deine E-Mail-Adresse *</label>
+          <input type="email" id="email" name="Email" required placeholder="laura@beispiel.de">
+        </div>
+
+        <div class="form-group">
+          <label for="type">Art des Shootings</label>
+          <select id="type" name="Shooting-Art">
+            <option value="Portrait">Portrait</option>
+            <option value="Babybauch">Babybauch</option>
+            <option value="Familie Outdoor">Familie Outdoor</option>
+            <option value="Sonstiges">Sonstiges</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="date">Wunschzeitraum / Datum</label>
+          <input type="text" id="date" name="Wunschdatum" placeholder="z. B. Mitte Mai / Sonnenuntergang">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 20px;">
+        <label for="message">Deine Nachricht *</label>
+        <textarea id="message" name="Nachricht" rows="5" required placeholder="Erzählt mir kurz von euch und was ihr euch vorstellt..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-primary" style="margin-top: 24px; border: none; cursor: pointer;">
+        Anfrage absenden
+      </button>
+
+    </form>
+
+    <div class="contact-inner" style="margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--line);">
+      <p style="font-size: 14px; color: var(--moss-deep);">Oder schreibe mir direkt über:</p>
+      <div class="socials">
+        <a href="mailto:kontakt@silvis-photography.com">E-Mail</a>
+        <a href="https://www.instagram.com/silvisphotos" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://wa.me/491234567890" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      </div>
+    </div>
+  </div>
 </section>
 
 <footer>
