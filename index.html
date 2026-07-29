@@ -127,7 +127,6 @@
     grid-template-columns: 1fr;
     gap: 20px;
   }
-
   .g-item {
     position: relative;
     border-radius: 8px;
@@ -135,26 +134,15 @@
     background-color: var(--sand-deep);
     aspect-ratio: 2 / 3;
   }
-
   .g-item .ph {
     object-position: center;
     transition: transform .6s ease;
   }
-
   .g-item:hover .ph { 
     transform: scale(1.04); 
   }
-
   .g-item.g-landscape {
     aspect-ratio: 3 / 2;
-  }
-
-  .g-tag {
-    position: absolute; left: 12px; bottom: 12px; z-index: 2;
-    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #fff;
-    background: rgba(43,42,36,0.45); padding: 5px 12px; border-radius: 999px;
-    backdrop-filter: blur(4px);
-    pointer-events: none;
   }
 
   /* ABOUT */
@@ -174,6 +162,118 @@
   }
   .about p{ font-size:16px; color:var(--moss-deep); margin-bottom:16px; max-width:520px; }
   .about strong{ color:var(--ink); font-weight:500; }
+
+  /* SHOOTING GUIDE, PREISE & FAQ */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+  .pricing-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  }
+  .pricing-card.featured {
+    border: 2px solid var(--moss);
+  }
+  .badge-featured {
+    position: absolute;
+    top: -12px;
+    right: 24px;
+    background: var(--moss);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 14px;
+    border-radius: 999px;
+  }
+  .pricing-card h3 {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--moss);
+    margin-bottom: 6px;
+  }
+  .pricing-card .price {
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 16px;
+    font-family: 'Fraunces', serif;
+  }
+  .pricing-card .package-desc {
+    font-size: 15px;
+    color: var(--moss-deep);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .pricing-card ul {
+    list-style: none;
+  }
+  .pricing-card ul li {
+    font-size: 15px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    color: var(--moss-deep);
+  }
+  .pricing-card ul li:first-child { border-top: none; }
+  
+  .included-box {
+    background: var(--sand-deep);
+    border-left: 4px solid var(--moss);
+    padding: 24px 32px;
+    border-radius: 4px;
+    margin-bottom: 80px;
+  }
+  .included-box h3 {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 20px;
+    color: var(--moss);
+    margin-bottom: 12px;
+  }
+  .included-box ul { list-style: none; }
+  .included-box li { font-size: 15px; padding: 6px 0; color: var(--moss-deep); }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .faq-item {
+    background: #fff;
+    padding: 26px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+  }
+  .faq-item h4 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .faq-item p {
+    font-size: 15px;
+    color: var(--moss-deep);
+  }
+  .tax-note {
+    text-align: center;
+    font-size: 13px;
+    color: var(--moss-deep);
+    margin-top: 40px;
+    opacity: 0.8;
+  }
 
   /* CONTACT & FORMULAR STYLES */
   #contact{ border-bottom:none; }
@@ -237,14 +337,12 @@
       aspect-ratio: auto;
     }
   }
-
   @media (max-width: 820px){
     .hero-inner{ grid-template-columns:1fr; }
     .services{ grid-template-columns:1fr; }
     .about{ grid-template-columns:1fr; }
     nav ul{ display:none; }
   }
-
   @media (max-width: 600px) {
     .form-grid { grid-template-columns: 1fr; }
   }
@@ -259,6 +357,7 @@
       <li><a href="#services">Angebot</a></li>
       <li><a href="#gallery">Galerie</a></li>
       <li><a href="#about">Über mich</a></li>
+      <li><a href="#shooting-guide">Preise</a></li>
     </ul>
     <a class="nav-cta" href="#contact">Termin anfragen</a>
   </div>
@@ -324,30 +423,23 @@
     <div class="gallery">
       <div class="g-item g-tall">
         <img class="ph" src="images/gallery-1.jpg" alt="Babybauch und Paar Outdoor" style="object-position: top center;">
-        
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-2.jpg" alt="Portrait im Freien">
-        
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-3.jpg" alt="Babybauch Foto im Abendlicht">
-      
       </div>
       <div class="g-item g-landscape">
         <img class="ph" src="images/gallery-4.jpg" alt="Authentisches Portrait">
-        
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-5.jpg" alt="Familienshooting in der Natur" style="object-position: bottom center;">
-        
       </div>
       <div class="g-item">
         <img class="ph" src="images/gallery-6.jpg" alt="Babybauch Shooting">
-        
       </div>
     </div>
-
   </div>
 </section>
 
@@ -381,6 +473,109 @@
     </div>
   </div>
 </section>
+
+<!-- ========================================== -->
+<!-- SHOOTING-GUIDE, PREISE & FAQ SECTION       -->
+<!-- ========================================== -->
+<section id="shooting-guide">
+  <div class="wrap">
+    <div class="section-label">Preise & Infos</div>
+    <h2>Dein Shooting-Guide</h2>
+    <p style="color: var(--moss-deep); margin-bottom: 40px; max-width: 600px;">
+      Schön, dass du da bist! Hier findest du alle Pakete im Überblick. Wir gestalten dein Shooting ganz entspannt, ohne Stress und in einer Wohlfühlatmosphäre.
+    </p>
+
+    <!-- Preisübersicht -->
+    <div class="pricing-grid">
+      
+      <!-- Mini Paket -->
+      <div class="pricing-card">
+        <h3>🌿 MINI</h3>
+        <div class="price">149 €</div>
+        <p class="package-desc">Perfekt für kleine Erinnerungen oder ein kurzes Shooting in entspannter Atmosphäre.</p>
+        <ul>
+          <li>ca. 45 Minuten Shooting</li>
+          <li>mindestens 10 Bilder, im individuellen Bildstil aufbereitet</li>
+        </ul>
+      </div>
+
+      <!-- Standard Paket -->
+      <div class="pricing-card featured">
+        <span class="badge-featured">Empfehlung</span>
+        <h3>🌾 STANDARD</h3>
+        <div class="price">249 €</div>
+        <p class="package-desc">Ideal, wenn ihr euch etwas mehr Zeit wünscht und verschiedene Motive festhalten möchtet.</p>
+        <ul>
+          <li>ca. 60–75 Minuten Shooting</li>
+          <li>mindestens 20 Bilder, im individuellen Bildstil aufbereitet</li>
+        </ul>
+      </div>
+
+      <!-- Premium Paket -->
+      <div class="pricing-card">
+        <h3>✨ PREMIUM</h3>
+        <div class="price">349 €</div>
+        <p class="package-desc">Für alle, die ihr Shooting ganz ohne Zeitdruck genießen und eine große Auswahl mitnehmen möchten.</p>
+        <ul>
+          <li>ca. 90 Minuten Shooting</li>
+          <li>mindestens 35 Bilder, im individuellen Bildstil aufbereitet</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- In allen Paketen enthalten -->
+    <div class="included-box">
+      <h3>In allen Paketen enthalten:</h3>
+      <ul>
+        <li>• Eure private, passwortgeschützte Online-Galerie zum Durchstöbern & Herunterladen</li>
+        <li>• Anfahrt bis 25 km ab Großbottwar inklusive <em>(jeder weitere Kilometer: 0,30 €)</em></li>
+      </ul>
+    </div>
+
+    <!-- FAQ Bereich -->
+    <div id="faq">
+      <div class="section-label">Häufige Fragen</div>
+      <h2 style="margin-bottom: 40px;">Gut zu wissen (FAQ)</h2>
+
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4>Wie läuft die Bezahlung ab?</h4>
+          <p>Damit dein Termin fest für dich reserviert ist, wird bei der Buchung eine kleine Anzahlung fällig. Den Restbetrag zahlst du dann ganz bequem per Überweisung nach dem Shooting, bevor du deine fertigen Bilder in der Galerie herunterlädst.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Dürfen Vierbeiner auch mit zum Shooting?</h4>
+          <p>Na klar, sehr gerne! Hunde (und andere tierische Familienmitglieder) gehören schließlich genauso dazu. Wir gestalten das Shooting ganz entspannt und ohne Druck, sodass sich auch deine Fellnase rundum wohlfühlt.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Wie laufen die Vorbereitungen ab?</h4>
+          <p>Nach deiner Buchung stimmen wir gemeinsam die passende Location und deine Wünsche ab. Du bekommst vorab gerne ein paar Tipps von mir, welche Outfits sich auf Bildern besonders schön machen!</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Wann und wie erhalte ich meine Bilder?</h4>
+          <p>Innerhalb von ca. 2 bis 3 Wochen nach unserem Shooting erstelle ich deine persönliche Online-Galerie. Dort kannst du deine Bilder ganz bequem in hoher Auflösung herunterladen.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Was passiert, wenn das Wetter nicht mitspielt?</h4>
+          <p>Sollte es am Shooting-Tag stark regnen oder stürmen, verschieben wir den Termin ganz unkompliziert und kostenfrei auf einen Ausweichtag.</p>
+        </div>
+
+        <div class="faq-item">
+          <h4>Können wir auch weitere Bilder nachbestellen?</h4>
+          <p>Na klar! Falls du dich in mehr Fotos verliebst als im Paket enthalten sind, kannst du zusätzliche Bilder ganz flexibel über eure Galerie dazu buchen.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="tax-note">*Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.</p>
+  </div>
+</section>
+<!-- ========================================== -->
+
 
 <section id="contact">
   <div class="wrap">
