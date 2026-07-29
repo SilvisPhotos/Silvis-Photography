@@ -40,7 +40,18 @@
     border-bottom:1px solid var(--line);
   }
   nav .wrap{ display:flex; justify-content:space-between; align-items:center; padding:20px 32px; }
-  .logo{ font-family:'Fraunces', serif; font-style:italic; font-weight:500; font-size:20px; }
+  a.logo { 
+    font-family: 'Fraunces', serif; 
+    font-style: italic; 
+    font-weight: 500; 
+    font-size: 20px; 
+    color: var(--ink); 
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  a.logo:hover {
+    color: var(--moss);
+  }
   nav ul{ list-style:none; display:flex; gap:30px; }
   nav a{ text-decoration:none; font-size:14px; letter-spacing:0.02em; color:var(--moss-deep); transition:color .2s; }
   nav a:hover{ color:var(--rose); }
@@ -345,7 +356,7 @@
 
 <nav>
   <div class="wrap">
-    <div class="logo">Silvis Photography</div>
+    <a href="#" class="logo">Silvis Photography</a>
     <ul>
       <li><a href="#services">Angebot</a></li>
       <li><a href="#gallery">Galerie</a></li>
