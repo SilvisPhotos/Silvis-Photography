@@ -167,84 +167,77 @@
   .pricing-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-    margin-bottom: 40px;
+    gap: 50px;
+    margin-bottom: 60px;
   }
-  .pricing-card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 32px 24px;
-    display: flex;
-    flex-direction: column;
+  .pricing-item {
     position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
   }
-  .pricing-card.featured {
-    border: 2px solid var(--moss);
-  }
-  .badge-featured {
-    position: absolute;
-    top: -12px;
-    right: 24px;
-    background: var(--moss);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 4px 14px;
-    border-radius: 999px;
-  }
-  .pricing-card h3 {
+  .pricing-item h3 {
     font-family: 'Fraunces', serif;
     font-style: italic;
-    font-weight: 500;
-    font-size: 22px;
-    color: var(--moss);
-    margin-bottom: 6px;
-  }
-  .pricing-card .price {
-    font-size: 32px;
     font-weight: 400;
+    font-size: 28px;
+    color: var(--moss);
+    margin-bottom: 4px;
+  }
+  .pricing-item .price {
+    font-size: 24px;
+    font-weight: 300;
     color: var(--ink);
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     font-family: 'Fraunces', serif;
   }
-  .pricing-card .package-desc {
+  .pricing-item .package-desc {
     font-size: 15px;
     color: var(--moss-deep);
     margin-bottom: 24px;
-    line-height: 1.5;
+    line-height: 1.6;
   }
-  .pricing-card ul {
+  .pricing-item ul {
     list-style: none;
-  }
-  .pricing-card ul li {
-    font-size: 15px;
-    padding: 10px 0;
     border-top: 1px solid var(--line);
-    color: var(--moss-deep);
+    padding-top: 20px;
   }
-  .pricing-card ul li:first-child { border-top: none; }
+  .pricing-item ul li {
+    font-size: 15px;
+    padding: 6px 0;
+    color: var(--moss-deep);
+    display: flex;
+    gap: 12px;
+  }
+  /* Ein dezenter Punkt statt Checkmarks */
+  .pricing-item ul li::before {
+    content: "·";
+    color: var(--rose);
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 1.2;
+  }
   
   .included-box {
-    background: var(--sand-deep);
-    border-left: 4px solid var(--moss);
-    padding: 24px 32px;
-    border-radius: 4px;
+    background: transparent;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 40px 0;
     margin-bottom: 80px;
+    text-align: center;
   }
   .included-box h3 {
     font-family: 'Fraunces', serif;
     font-style: italic;
-    font-weight: 500;
-    font-size: 20px;
+    font-weight: 400;
+    font-size: 22px;
     color: var(--moss);
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
-  .included-box ul { list-style: none; }
-  .included-box li { font-size: 15px; padding: 6px 0; color: var(--moss-deep); }
+  .included-box ul { 
+    list-style: none; 
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .included-box li { font-size: 15px; color: var(--moss-deep); }
 
   .faq-grid {
     display: grid;
@@ -485,12 +478,12 @@
       Schön, dass du da bist! Hier findest du alle Pakete im Überblick. Wir gestalten dein Shooting ganz entspannt, ohne Stress und in einer Wohlfühlatmosphäre.
     </p>
 
-    <!-- Preisübersicht -->
+   <!-- Preisübersicht -->
     <div class="pricing-grid">
       
       <!-- Mini Paket -->
-      <div class="pricing-card">
-        <h3>🌿 MINI</h3>
+      <div class="pricing-item">
+        <h3>Mini</h3>
         <div class="price">149 €</div>
         <p class="package-desc">Perfekt für kleine Erinnerungen oder ein kurzes Shooting in entspannter Atmosphäre.</p>
         <ul>
@@ -500,9 +493,8 @@
       </div>
 
       <!-- Standard Paket -->
-      <div class="pricing-card featured">
-        <span class="badge-featured">Empfehlung</span>
-        <h3>🌾 STANDARD</h3>
+      <div class="pricing-item">
+        <h3>Standard</h3>
         <div class="price">249 €</div>
         <p class="package-desc">Ideal, wenn ihr euch etwas mehr Zeit wünscht und verschiedene Motive festhalten möchtet.</p>
         <ul>
@@ -512,8 +504,8 @@
       </div>
 
       <!-- Premium Paket -->
-      <div class="pricing-card">
-        <h3>✨ PREMIUM</h3>
+      <div class="pricing-item">
+        <h3>Premium</h3>
         <div class="price">349 €</div>
         <p class="package-desc">Für alle, die ihr Shooting ganz ohne Zeitdruck genießen und eine große Auswahl mitnehmen möchten.</p>
         <ul>
@@ -526,10 +518,10 @@
 
     <!-- In allen Paketen enthalten -->
     <div class="included-box">
-      <h3>In allen Paketen enthalten:</h3>
+      <h3>In allen Paketen enthalten</h3>
       <ul>
-        <li>• Eure private, passwortgeschützte Online-Galerie zum Durchstöbern & Herunterladen</li>
-        <li>• Anfahrt bis 25 km ab Großbottwar inklusive <em>(jeder weitere Kilometer: 0,30 €)</em></li>
+        <li>Eure private, passwortgeschützte Online-Galerie zum Durchstöbern & Herunterladen</li>
+        <li>Anfahrt bis 25 km ab Großbottwar inklusive (jeder weitere Kilometer: 0,30 €)</li>
       </ul>
     </div>
 
