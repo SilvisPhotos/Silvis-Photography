@@ -775,6 +775,13 @@
     });
   });
 </script>
+    <script>
+  document.getElementById('galleryMoreBtn').addEventListener('click', function () {
+    var gallery = document.querySelector('.gallery');
+    var isOpen = gallery.classList.toggle('show-extra');
+    this.textContent = isOpen ? 'Weniger anzeigen' : 'Weitere Fotos anzeigen';
+  });
+</script>
 
 </body>
 </html>
