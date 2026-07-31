@@ -192,8 +192,23 @@
   .g-item:hover .ph { 
     transform: scale(1.04); 
   }
+  .g-item.extra{ display:none; }
+.gallery.show-extra .g-item.extra{ display:block; }
+.gallery-more-btn{
+  display:block;
+  margin:36px auto 0;
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:14px;
+  color:var(--ink);
+  border-bottom:1px solid var(--ink);
+  padding-bottom:2px;
+}
   .g-item.g-landscape {
     aspect-ratio: 3 / 2;
+    
   }
 
   /* ABOUT */
@@ -514,7 +529,16 @@
       <div class="g-item">
         <img class="ph" src="images/gallery-6.jpg" alt="Babybauch Shooting">
       </div>
+    <div class="g-item extra">
+        <img class="ph" src="images/gallery-7.jpg" alt="Weiteres Foto">
+      </div>
+      <div class="g-item extra">
+        <img class="ph" src="images/gallery-8.jpg" alt="Weiteres Foto">
+      </div>
     </div>
+
+    <button class="gallery-more-btn" id="galleryMoreBtn">Weitere Fotos anzeigen</button>
+
   </div>
 </section>
 
