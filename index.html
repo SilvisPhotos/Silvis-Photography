@@ -80,6 +80,11 @@
     border-bottom:1px solid var(--line);
   }
   nav .wrap{ display:flex; justify-content:space-between; align-items:center; padding:20px 32px; }
+  /* HIER DAS LOGO-CSS EINFÜGEN: */
+  .site-logo {
+    height: 45px; /* Höhe des Logos im Header */
+    width: auto;  /* Behält das Seitenverhältnis bei */
+    display: block;
   a.logo { 
     font-family: 'Fraunces', serif; 
     font-style: italic; 
@@ -433,25 +438,35 @@
     .form-grid { grid-template-columns: 1fr; }
   }
 </style>
+  <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 
-  <body>
+ <body>
 
-<nav>
-  <div class="wrap" style="position:relative;">
-    <a href="#" class="logo">Silvis Photography</a>
-    <ul id="navMenu">
-      <li><a href="#services">Angebot</a></li>
-      <li><a href="#gallery">Galerie</a></li>
-      <li><a href="#about">Über mich</a></li>
-      <li><a href="#shooting-guide">Preise</a></li>
-    </ul>
-    <button class="hamburger" id="hamburgerBtn" aria-label="Menü öffnen">
-      <span></span><span></span><span></span>
-    </button>
-    <a class="nav-cta" href="#contact">Termin anfragen</a>
-  </div>
-</nav>
+<header>
+  <nav>
+    <div class="wrap" style="position:relative; display:flex; justify-content:space-between; align-items:center;">
+      
+      <!-- LOGO HIER EINGEBAUT: -->
+      <a href="index.html" class="logo-link">
+        <img src="images/logo.png" alt="Silvis Photography Logo" class="site-logo">
+      </a>
+
+      <ul id="navMenu">
+        <li><a href="#services">Angebot</a></li>
+        <li><a href="#gallery">Galerie</a></li>
+        <li><a href="#about">Über mich</a></li>
+        <li><a href="#shooting-guide">Preise</a></li>
+      </ul>
+
+      <button class="hamburger" id="hamburgerBtn" aria-label="Menü öffnen">
+        <span></span><span></span><span></span>
+      </button>
+
+      <a class="nav-cta" href="#contact">Termin anfragen</a>
+    </div>
+  </nav>
+</header>
 
 <header class="hero">
   <div class="wrap hero-inner">
