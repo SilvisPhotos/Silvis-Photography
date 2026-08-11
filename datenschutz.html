@@ -34,7 +34,17 @@
     border-bottom:1px solid var(--line);
   }
   nav .wrap{ display:flex; justify-content:space-between; align-items:center; padding:20px 32px; }
-  .logo{ font-family:'Fraunces', serif; font-style:italic; font-weight:500; font-size:20px; text-decoration:none; }
+.logo { 
+    display: flex; 
+    align-items: center; 
+    text-decoration: none; 
+  }
+
+  .logo img { 
+    height: 35px; /* Passe die Höhe an, damit es perfekt im Menü sitzt */
+    width: auto; 
+    display: block; 
+  }
   .back-link{ font-size:14px; text-decoration:none; color:var(--moss-deep); border-bottom:1px solid var(--ink); }
 
   main{ padding:80px 0; }
@@ -51,7 +61,9 @@
 
 <nav>
   <div class="wrap">
-    <a href="index.html" class="logo">Silvis Photography</a>
+    <a href="index.html" class="logo">
+      <img src="logo.png" alt="Silvis Photography Logo">
+    </a>
     <a href="index.html" class="back-link">← Zurück zur Startseite</a>
   </div>
 </nav>
