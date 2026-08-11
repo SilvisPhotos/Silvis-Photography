@@ -11,35 +11,6 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-  .about-container {
-  display: flex;
-  flex-direction: column; /* Mobil: Untereinander (Text oben, Bild unten) */
-  gap: 40px;
-  align-items: center;
-}
-
-.about-image img {
-  width: 100%;
-  max-width: 450px;
-  border-radius: 12px; /* Schöne abgerundete Ecken wie auf deinem Screenshot */
-  display: block;
-}
-
-/* Für Bildschirme ab Laptop/Desktop-Größe */
-@media (min-width: 768px) {
-  .about-container {
-    flex-direction: row; /* Desktop: Nebeneinander */
-    align-items: flex-start;
-  }
-  
-  .about-text {
-    flex: 1;
-  }
-  
-  .about-image {
-    flex: 1;
-  }
-}
   @font-face {
     font-family: 'Fraunces';
     src: url('fonts/fraunces-v38-latin-300.woff2') format('woff2');
@@ -282,12 +253,17 @@ body{
   }
 
   /* ABOUT */
-  .about{ display:grid; grid-template-columns:0.8fr 1.2fr; gap:60px; align-items:center; }
+  .about{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+  }
+  .about-heading{ order:1; }
   .about-photo{
-    aspect-ratio: auto; 
-    max-width: 420px; 
-    border-radius: 8px; 
-    overflow: hidden; 
+    order:2;
+    max-width: 420px;
+    border-radius: 8px;
+    overflow: hidden;
     margin: 0 auto;
     width: 100%;
   }
@@ -296,8 +272,25 @@ body{
     height: auto;
     display: block;
   }
-  .about p{ font-size:16px; color:#000; margin-bottom:16px; max-width:520px; }
+  .about-copy{ order:3; }
+  .about-copy p{ font-size:16px; color:#000; margin-bottom:16px; max-width:520px; }
   .about strong{ color:var(--ink); font-weight:500; }
+
+  @media (min-width: 821px){
+    .about{
+      display:grid;
+      grid-template-columns:0.8fr 1.2fr;
+      grid-template-areas:
+        "photo heading"
+        "photo copy";
+      column-gap:60px;
+      row-gap:12px;
+      align-items:start;
+    }
+    .about-photo{ grid-area:photo; order:initial; align-self:start; }
+    .about-heading{ grid-area:heading; order:initial; }
+    .about-copy{ grid-area:copy; order:initial; }
+  }
 
   /* SHOOTING GUIDE, PREISE & FAQ */
   .pricing-grid {
@@ -565,7 +558,7 @@ body{
         <span>Portraitshootings</span>
         <span>Babybauch-Fotografie</span>
         <span>Familienbilder Outdoor</span>
-        <span>Großbottwar & Umgebung — weitere Aneise nach Absprache möglich</span>
+        <span>Großbottwar & Umgebung — weitere Reise nach Absprache möglich</span>
       </div>
     </div>
   </div>
@@ -634,24 +627,24 @@ body{
 
 <!-- ABOUT SECTION -->
 <section id="about">
-  <div class="wrap">
-    <div class="about-text">
+  <div class="wrap about">
+    <div class="about-heading">
       <div class="section-label">Über mich</div>
       <h2>Hi. Ich bin Silvi.</h2>
-      
-      <!-- FOTO DIREKT UNTER DER ÜBERSCHRIFT -->
-      <div class="about-image" style="margin: 24px 0 32px 0;">
-        <img src="images/silvi-portrait.jpg" alt="Silvi — Fotografin bei Silvis Photography" style="width: 100%; max-width: 450px; border-radius: 12px; display: block;">
-      </div>
+    </div>
 
-      <!-- TEXT NACH DEM FOTO -->
+    <div class="about-photo">
+      <img src="images/silvi-portrait.jpg" alt="Silvi — Fotografin bei Silvis Photography">
+    </div>
+
+    <div class="about-copy">
       <p>
-        Fotografie ist für mich kein Termin zum Abhaken, sondern ein ruhiger Moment mitten im Alltag. 
-        Ich nehme mir Zeit, euch kennenzulernen, bevor ich das erste Mal auf den Auslöser drücke — 
+        Fotografie ist für mich kein Termin zum Abhaken, sondern ein ruhiger Moment mitten im Alltag.
+        Ich nehme mir Zeit, euch kennenzulernen, bevor ich das erste Mal auf den Auslöser drücke —
         damit die Bilder genau das zeigen, was gerade da ist.
       </p>
       <p>
-        Ob Portrait, Babybauch oder Familie: Mir ist wichtig, dass ihr euch beim Shooting wohlfühlt. 
+        Ob Portrait, Babybauch oder Familie: Mir ist wichtig, dass ihr euch beim Shooting wohlfühlt.
         Kein Posing-Katalog, kein gezwungenes Lächeln, sondern echte Momente draußen in der Natur.
       </p>
       <p>
@@ -661,13 +654,6 @@ body{
         Heute verbinde ich meinen Blick für stimmungsvolle Orte in der Natur mit echten Portraits. Mir geht es nicht um perfekte Posen, sondern um eine entspannte Zeit draußen, bei der ganz ohne Druck authentische Bilder entstehen.
       </p>
     </div>
-  </div>
-</section>
-    <!-- 2. BILD-BLOCK (Auf Mobilgeräten darunter) -->
-    <div class="about-image">
-      <img src="DEIN-BILDNAME.jpg" alt="Silvi - Fotografin bei Silvis Photography">
-    </div>
-
   </div>
 </section>
 
@@ -734,7 +720,7 @@ body{
       <div class="section-label">Häufige Fragen</div>
       <h2 style="margin-bottom: 40px;">Gut zu wissen (FAQ)</h2>
 
-<div class="faq-list">
+      <div class="faq-list">
         <details class="faq-item">
           <summary>Wie läuft die Bezahlung ab?</summary>
           <p>Damit dein Termin fest für dich reserviert ist, wird bei der Buchung eine Anzahlung von 50€ fällig. Den Restbetrag zahlst du dann ganz bequem per Überweisung nach dem Shooting, bevor du deine fertigen Bilder in der Galerie herunterlädst.</p>
@@ -779,7 +765,6 @@ body{
           <summary>Können wir auch weitere Bilder nachbestellen?</summary>
           <p>Na klar! Falls du dich in mehr Fotos verliebst als im Paket enthalten sind, kannst du zusätzliche Bilder ganz flexibel über eure Galerie dazu buchen.</p>
         </details>
-      </div>
       </div>
     </div>
 
