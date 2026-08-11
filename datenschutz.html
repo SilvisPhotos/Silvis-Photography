@@ -17,7 +17,12 @@
   }
   *{box-sizing:border-box; margin:0; padding:0;}
 body{
-    background:linear-gradient(180deg, var(--sand) 0%, var(--sand-deep) 100%);
+    background:
+      linear-gradient(rgba(243,234,217,0.75), rgba(243,234,217,0.75)),
+      url('images/bg-texture.jpg');
+    background-size:cover;
+    background-position:top center;
+    background-repeat:repeat-y;
     min-height:100vh;
     color:var(--ink);
     font-family:'Jost', sans-serif;
