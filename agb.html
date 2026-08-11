@@ -51,11 +51,19 @@
     font-size: 20px; 
     color: var(--ink); 
     transition: color 0.2s;
+    display: flex;
+    align-items: center;
   }
   a.logo:hover { color: var(--moss); }
+  .site-logo{
+    max-height: 40px;
+    width: auto;
+    display: block;
+  }
   nav ul{ list-style:none; display:flex; gap:30px; }
   nav a.nav-link{ font-size:14px; letter-spacing:0.02em; color:var(--moss-deep); transition:color .2s; }
   nav a.nav-link:hover{ color:var(--rose); }
+  .back-link{ font-size:14px; color:var(--moss-deep); border-bottom:1px solid var(--ink); }
 
   /* LEGAL CONTENT STYLES */
   .legal-section {
@@ -127,16 +135,15 @@
 <nav>
   <div class="wrap">
     <a href="index.html" class="logo">
-      <img src="images/logo.png" alt="Silvis Photography Logo">
+      <img src="images/logo.png" alt="Silvis Photography Logo" class="site-logo">
     </a>
-    <a href="index.html" class="back-link">← Zurück zur Startseite</a>
-  <div>
-</nav>
+    <ul>
       <li><a href="index.html#services" class="nav-link">Angebot</a></li>
       <li><a href="index.html#gallery" class="nav-link">Galerie</a></li>
       <li><a href="index.html#about" class="nav-link">Über mich</a></li>
       <li><a href="index.html#shooting-guide" class="nav-link">Preise</a></li>
     </ul>
+    <a href="index.html" class="back-link">← Zurück zur Startseite</a>
   </div>
 </nav>
 
