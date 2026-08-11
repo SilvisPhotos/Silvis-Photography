@@ -74,7 +74,7 @@
   inset:0;
   z-index:-1;
 background:
-    linear-gradient(rgba(243,234,217,0.85), rgba(243,234,217,0.85)),
+    linear-gradient(rgba(243,234,217,0.9), rgba(243,234,217,0.9)),
     url('images/bg-texture.jpg');
   background-size:cover;
   background-position:center;
@@ -775,6 +775,13 @@ background:
       <div class="form-group" style="margin-top: 20px;">
         <label for="message">Deine Nachricht *</label>
         <textarea id="message" name="Nachricht" rows="5" required placeholder="Erzählt mir kurz von euch und was ihr euch vorstellt..."></textarea>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; align-items: flex-start; gap: 10px;">
+        <input type="checkbox" id="datenschutz" required style="margin-top: 4px;">
+        <label for="datenschutz" style="font-size: 13px; color: var(--moss-deep); font-weight: normal;">
+          Ich habe die <a href="datenschutz.html" style="text-decoration: underline;" target="_blank">Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner Daten zur Bearbeitung meiner Anfrage einverstanden. *
+        </label>
       </div>
 
       <button type="submit" class="btn-primary" style="margin-top: 24px; border: none; cursor: pointer;">
