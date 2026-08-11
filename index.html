@@ -183,12 +183,21 @@ body{
   }
 
   /* SERVICES */
-  .services{ display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--line); border:1px solid var(--line); }
-  .service{ background:var(--sand); padding:42px 32px; }
-  .service h3{
-    font-family:'Fraunces', serif; font-style:italic; font-weight:500; font-size:24px; margin-bottom:14px; color:var(--moss);
+  .services{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    border-top:1px solid #000;
+    border-bottom:1px solid #000;
   }
-  .service p{ font-size:15px; color:var(--moss-deep); }
+  .service{
+    padding:42px 32px;
+    border-left:1px solid #000;
+  }
+  .service:first-child{ border-left:none; }
+  .service h3{
+    font-family:'Fraunces', serif; font-style:italic; font-weight:500; font-size:24px; margin-bottom:14px; color:#000;
+  }
+  .service p{ font-size:15px; color:#000; }
 
   /* GALERIE */
   .gallery {
