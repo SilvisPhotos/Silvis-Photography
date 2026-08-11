@@ -11,6 +11,35 @@
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <style>
+  .about-container {
+  display: flex;
+  flex-direction: column; /* Mobil: Untereinander (Text oben, Bild unten) */
+  gap: 40px;
+  align-items: center;
+}
+
+.about-image img {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 12px; /* Schöne abgerundete Ecken wie auf deinem Screenshot */
+  display: block;
+}
+
+/* Für Bildschirme ab Laptop/Desktop-Größe */
+@media (min-width: 768px) {
+  .about-container {
+    flex-direction: row; /* Desktop: Nebeneinander */
+    align-items: flex-start;
+  }
+  
+  .about-text {
+    flex: 1;
+  }
+  
+  .about-image {
+    flex: 1;
+  }
+}
   @font-face {
     font-family: 'Fraunces';
     src: url('fonts/fraunces-v38-latin-300.woff2') format('woff2');
@@ -610,7 +639,11 @@ body{
       <img class="ph" src="images/silvi-portrait.jpg" alt="Silvi — Fotografin bei Silvis Photography">
     </div>
 
-    <div>
+   <section class="about-section">
+  <div class="wrap about-container">
+    
+    <!-- 1. TEXT-BLOCK (Auf Mobilgeräten zuerst) -->
+    <div class="about-text">
       <div class="section-label">Über mich</div>
       <h2 style="margin-bottom:24px;">Hi. Ich bin Silvi.</h2>
       <p>
@@ -631,6 +664,12 @@ body{
         echten Emotionen und eurer Geschichte.
       </p>
     </div>
+
+    <!-- 2. BILD-BLOCK (Auf Mobilgeräten darunter) -->
+    <div class="about-image">
+      <img src="DEIN-BILDNAME.jpg" alt="Silvi - Fotografin bei Silvis Photography">
+    </div>
+
   </div>
 </section>
 
