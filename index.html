@@ -74,7 +74,7 @@
   inset:0;
   z-index:-1;
 background:
-    linear-gradient(rgba(243,234,217,0.87), rgba(243,234,217,0.87)),
+    linear-gradient(rgba(243,234,217,0.8), rgba(243,234,217,0.8)),
     url('images/bg-texture.jpg');
   background-size:cover;
   background-position:center;
@@ -330,35 +330,35 @@ background:
   .included-box li { font-size: 15px; color: #000; }
 
 .faq-list{ border-top:1px solid #000; }
-.faq-item{
-  border-bottom:1px solid #000;
-  padding:22px 0;
-}
-.faq-item summary{
-  list-style:none;
-  cursor:pointer;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:16px;
-  font-weight:500;
-  color:#000;
-}
-.faq-item summary::-webkit-details-marker{ display:none; }
-.faq-item summary::after{
-  content:"+";
-  font-size:22px;
-  font-weight:300;
-  margin-left:16px;
-  flex-shrink:0;
-}
-.faq-item[open] summary::after{ content:"–"; }
-.faq-item p{
-  font-size:15px;
-  color:#000;
-  margin-top:14px;
-  max-width:640px;
-}
+  .faq-item{
+    border-bottom:1px solid #000;
+    padding:22px 0;
+  }
+  .faq-item summary{
+    list-style:none;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:16px;
+    font-weight:500;
+    color:#000;
+  }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{
+    content:"+";
+    font-size:22px;
+    font-weight:300;
+    margin-left:16px;
+    flex-shrink:0;
+  }
+  .faq-item[open] summary::after{ content:"–"; }
+  .faq-item p{
+    font-size:15px;
+    color:#000;
+    margin-top:14px;
+    max-width:640px;
+  }
   .tax-note {
     text-align: center;
     font-size: 13px;
@@ -677,48 +677,52 @@ background:
       <div class="section-label">Häufige Fragen</div>
       <h2 style="margin-bottom: 40px;">Gut zu wissen (FAQ)</h2>
 
-      <div class="faq-grid">
-        <div class="faq-item">
-          <h4>Wie läuft die Bezahlung ab?</h4>
+<div class="faq-list">
+        <details class="faq-item">
+          <summary>Wie läuft die Bezahlung ab?</summary>
           <p>Damit dein Termin fest für dich reserviert ist, wird bei der Buchung eine Anzahlung von 50€ fällig. Den Restbetrag zahlst du dann ganz bequem per Überweisung nach dem Shooting, bevor du deine fertigen Bilder in der Galerie herunterlädst.</p>
-        </div>
-<div class="faq-item">
-  <h4>Wie kann ich bezahlen?</h4>
-  <p>Ganz wie es dir lieber ist — per Überweisung oder PayPal. Die genauen Zahlungsdetails schicke ich dir persönlich nach deiner Anfrage zu.</p>
-</div>
+        </details>
 
-        <div class="faq-item">
-          <h4>Dürfen Vierbeiner auch mit zum Shooting?</h4>
+        <details class="faq-item">
+          <summary>Wie kann ich bezahlen?</summary>
+          <p>Ganz wie es dir lieber ist — per Überweisung oder PayPal. Die genauen Zahlungsdetails schicke ich dir persönlich nach deiner Anfrage zu.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Dürfen Vierbeiner auch mit zum Shooting?</summary>
           <p>Na klar, sehr gerne! Hunde (und andere tierische Familienmitglieder) gehören schließlich genauso dazu. Wir gestalten das Shooting ganz entspannt und ohne Druck, sodass sich auch deine Fellnase rundum wohlfühlt.</p>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <h4>Wie laufen die Vorbereitungen ab?</h4>
+        <details class="faq-item">
+          <summary>Wie laufen die Vorbereitungen ab?</summary>
           <p>Nach deiner Buchung stimmen wir gemeinsam die passende Location und deine Wünsche ab. Du bekommst vorab gerne ein paar Tipps von mir, welche Outfits sich auf Bildern besonders schön machen!</p>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <h4>Wann und wie erhalte ich meine Bilder?</h4>
+        <details class="faq-item">
+          <summary>Wann und wie erhalte ich meine Bilder?</summary>
           <p>Innerhalb von ca. 2 bis 3 Wochen nach unserem Shooting erstelle ich deine persönliche Online-Galerie. Dort kannst du deine Bilder ganz bequem in hoher Auflösung herunterladen.</p>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <h4>Was passiert, wenn das Wetter nicht mitspielt?</h4>
+        <details class="faq-item">
+          <summary>Was passiert, wenn das Wetter nicht mitspielt?</summary>
           <p>Sollte es am Shooting-Tag stark regnen oder stürmen, verschieben wir den Termin ganz unkompliziert und kostenfrei auf einen Ausweichtag.</p>
-        </div>
-        <div class="faq-item">
-          <h4>Was ist, wenn wir den Termin absagen müssen?</h4>
-          <p>Das Leben lässt sich nicht immer planen, das verstehe ich total! Bis zu 7 Tage vor unserem Shooting kannst du den Termin ganz unkompliziert und kostenfrei verschieben oder auch stornieren (deine Anzahlung bekommst du dann natürlich zurück). <br><br>Bei einer Absage von weniger als 7 Tagen vor dem Termin behalte ich die Anzahlung als kleine Ausfallentschädigung ein. Ausnahmen sind natürlich triftige Gründe wie plötzliche Krankheit – in solchen Notfällen finden wir immer eine faire Lösung und verschieben den Termin einfach kostenfrei!</p>
-        </div>
-        <div class="faq-item">
-  <h4>Habe ich ein Widerrufsrecht?</h4>
-  <p>Da es sich bei deinem Shooting um eine Dienstleistung im Bereich der Freizeitgestaltung mit einem fest vereinbarten Termin handelt, besteht gemäß § 312g Abs. 2 Nr. 9 BGB kein gesetzliches Widerrufsrecht. Für Terminänderungen oder Stornierungen gelten stattdessen die oben beschriebenen Bedingungen — flexibel und fair, auch ohne formales Widerrufsrecht.</p>
-</div>
+        </details>
 
-        <div class="faq-item">
-          <h4>Können wir auch weitere Bilder nachbestellen?</h4>
+        <details class="faq-item">
+          <summary>Was ist, wenn wir den Termin absagen müssen?</summary>
+          <p>Das Leben lässt sich nicht immer planen, das verstehe ich total! Bis zu 7 Tage vor unserem Shooting kannst du den Termin ganz unkompliziert und kostenfrei verschieben oder auch stornieren (deine Anzahlung bekommst du dann natürlich zurück). <br><br>Bei einer Absage von weniger als 7 Tagen vor dem Termin behalte ich die Anzahlung als kleine Ausfallentschädigung ein. Ausnahmen sind natürlich triftige Gründe wie plötzliche Krankheit – in solchen Notfällen finden wir immer eine faire Lösung und verschieben den Termin einfach kostenfrei!</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Habe ich ein Widerrufsrecht?</summary>
+          <p>Da es sich bei deinem Shooting um eine Dienstleistung im Bereich der Freizeitgestaltung mit einem fest vereinbarten Termin handelt, besteht gemäß § 312g Abs. 2 Nr. 9 BGB kein gesetzliches Widerrufsrecht. Für Terminänderungen oder Stornierungen gelten stattdessen die oben beschriebenen Bedingungen — flexibel und fair, auch ohne formales Widerrufsrecht.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Können wir auch weitere Bilder nachbestellen?</summary>
           <p>Na klar! Falls du dich in mehr Fotos verliebst als im Paket enthalten sind, kannst du zusätzliche Bilder ganz flexibel über eure Galerie dazu buchen.</p>
-        </div>
+        </details>
+      </div>
       </div>
     </div>
 
