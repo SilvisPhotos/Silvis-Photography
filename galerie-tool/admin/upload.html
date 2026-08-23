@@ -83,22 +83,63 @@
   }
   galerieFinden();
 
-  function wasserzeichenErstellen(bild) {
+  // Logo einmalig laden (wird für jedes Bild als Wasserzeichen wiederverwendet)
+  let logoBild = null;
+  function logoLaden() {
     return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => { logoBild = img; resolve(img); };
+      img.onerror = () => { logoBild = null; resolve(null); };
+      img.src = '../../images/logo.png';
+    });
+  }
+  const logoPromise = logoLaden();
+
+  function wasserzeichenErstellen(bild) {
+    return new Promise(async (resolve) => {
+      await logoPromise; // sicherstellen, dass das Logo geladen ist, bevor wir zeichnen
+
       const canvas = document.getElementById('wz-canvas');
-      canvas.width = bild.width; canvas.height = bild.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(bild, 0, 0);
-      ctx.font = `${Math.floor(bild.width / 20)}px sans-serif`;
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.textAlign = 'center';
-      ctx.save();
-      ctx.translate(bild.width / 2, bild.height / 2);
-      ctx.rotate(-Math.PI / 6);
-      for (let y = -bild.height; y < bild.height; y += bild.height / 4) {
-        ctx.fillText('SILVIS PHOTOGRAPHY', 0, y);
+
+      // Vorschaubild verkleinern (max. 2000px an der langen Seite) — reicht für die
+      // Web-Ansicht völlig aus und macht Verarbeitung + Upload deutlich schneller,
+      // gerade bei sehr hochauflösenden Kamerabildern wie deinen 68 Megapixeln.
+      const MAX_GROESSE = 2000;
+      let breite = bild.width;
+      let hoehe = bild.height;
+      if (breite > hoehe && breite > MAX_GROESSE) {
+        hoehe = Math.round(hoehe * (MAX_GROESSE / breite));
+        breite = MAX_GROESSE;
+      } else if (hoehe > MAX_GROESSE) {
+        breite = Math.round(breite * (MAX_GROESSE / hoehe));
+        hoehe = MAX_GROESSE;
       }
-      ctx.restore();
+
+      canvas.width = breite; canvas.height = hoehe;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bild, 0, 0, breite, hoehe);
+
+      if (logoBild) {
+        // Logo mittig, halbtransparent, ca. 35% der Bildbreite groß
+        const logoBreite = breite * 0.35;
+        const logoHoehe = logoBreite * (logoBild.height / logoBild.width);
+        ctx.globalAlpha = 0.55;
+        ctx.drawImage(
+          logoBild,
+          (breite - logoBreite) / 2,
+          (hoehe - logoHoehe) / 2,
+          logoBreite,
+          logoHoehe
+        );
+        ctx.globalAlpha = 1;
+      } else {
+        // Falls das Logo nicht geladen werden konnte: Text-Wasserzeichen als Rückfalllösung
+        ctx.font = `${Math.floor(breite / 20)}px sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.textAlign = 'center';
+        ctx.fillText('SILVIS PHOTOGRAPHY', breite / 2, hoehe / 2);
+      }
+
       canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
     });
   }
