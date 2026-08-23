@@ -47,13 +47,20 @@
     padding-top:20px; border-right:1px solid var(--line);
     min-height:calc(100vh - 90px);
   }
-  .sidebar .icon{ font-size:20px; color:#8a8272; cursor:default; }
+  .sidebar .icon{ font-size:20px; color:#8a8272; cursor:pointer; transition:color .15s; }
+  .sidebar .icon:hover{ color:var(--moss-deep); }
   .sidebar .icon.aktiv{ color:var(--moss); }
 
   .inhalt{ flex:1; padding:26px 40px 80px; }
   .titel-zeile{ display:flex; align-items:baseline; gap:14px; margin-bottom:26px; flex-wrap:wrap; }
   .titel-zeile h1{ font-family:'Fraunces',serif; font-weight:500; font-style:italic; font-size:24px; color:var(--ink); }
   .titel-zeile .kundenname{ color:#9a9384; font-size:15px; }
+
+  .hero{ display:none; position:relative; margin:0 0 30px; border-radius:10px; overflow:hidden; }
+  .hero img{ width:100%; max-height:420px; object-fit:cover; display:block; }
+  .hero-overlay{ position:absolute; bottom:0; left:0; right:0; padding:30px 26px 20px; background:linear-gradient(transparent, rgba(0,0,0,0.6)); }
+  .hero-overlay h1{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:26px; color:white; margin:0; }
+  .hero-overlay p{ color:rgba(255,255,255,0.85); font-size:14px; margin-top:4px; }
 
   .hinweis{ color:var(--moss-deep); font-size:13px; margin-bottom:24px; letter-spacing:0.02em; }
 
@@ -114,12 +121,20 @@
 
   <div class="haupt">
     <div class="sidebar">
-      <span class="icon aktiv">▦</span>
-      <span class="icon">♡</span>
+      <span class="icon aktiv" id="icon-alle" title="Alle Bilder">▦</span>
+      <span class="icon" id="icon-favoriten" title="Nur Favoriten">♡</span>
     </div>
 
     <div class="inhalt">
-      <div class="titel-zeile">
+      <div class="hero" id="hero">
+        <img id="hero-img" src="" alt="">
+        <div class="hero-overlay">
+          <h1 id="hero-titel"></h1>
+          <p id="hero-untertitel"></p>
+        </div>
+      </div>
+
+      <div class="titel-zeile" id="titel-zeile">
         <h1 id="galerie-titel"></h1>
         <span class="kundenname" id="kundenname"></span>
       </div>
@@ -179,9 +194,22 @@
         document.getElementById('login-wrapper').style.display = 'none';
         document.getElementById('galerie-ansicht').style.display = 'block';
 
-        document.getElementById('galerie-titel').textContent = galerie.titel;
-        if (galerie.kundeName) {
-          document.getElementById('kundenname').textContent = galerie.kundeName;
+        const begruessungText = galerie.kundeName
+          ? `Hallo ${galerie.kundeName}! Schön, dass du da bist.`
+          : `Schön, dass du da bist!`;
+
+        if (galerie.coverImageUrl) {
+          // Titelbild vorhanden -> großes Hero-Bild zeigen, schlichten Titel-Text ausblenden
+          document.getElementById('hero').style.display = 'block';
+          document.getElementById('hero-img').src = galerie.coverImageUrl;
+          document.getElementById('hero-titel').textContent = galerie.titel;
+          document.getElementById('hero-untertitel').textContent = begruessungText;
+          document.getElementById('titel-zeile').style.display = 'none';
+        } else {
+          document.getElementById('galerie-titel').textContent = galerie.titel;
+          if (galerie.kundeName) {
+            document.getElementById('kundenname').textContent = galerie.kundeName;
+          }
         }
 
         if (galerie.downloadFreigegeben === true) {
@@ -239,41 +267,84 @@
     });
 
     const grid = document.getElementById('grid');
-    grid.innerHTML = '';
     let favoritenAnzahl = 0;
     const alleUrls = [];
+    const alleBilder = [];
 
     snapshot.forEach(docSnap => {
       const b = docSnap.data();
       if (b.favorit) favoritenAnzahl++;
       alleUrls.push(b.previewUrl);
-      const index = alleUrls.length - 1;
-
-      const div = document.createElement('div');
-      div.className = 'bild-wrap';
-      div.innerHTML = `
-        <img src="${b.previewUrl}" alt="" data-index="${index}">
-        <span class="overlay-btn herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '♡'}</span>
-        <span class="overlay-btn lupe">🔍</span>
-      `;
-      grid.appendChild(div);
+      alleBilder.push({ id: docSnap.id, daten: b, index: alleUrls.length - 1 });
     });
 
     document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
 
-    document.querySelectorAll('.herz').forEach(herz => {
-      herz.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const bildId = herz.dataset.id;
-        const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
-        const aktuell = herz.textContent.trim() === '❤️';
-        await updateDoc(bildRef, { favorit: !aktuell });
-        herz.textContent = aktuell ? '♡' : '❤️';
-        const anzahlEl = document.getElementById('anzahl');
-        let anzahl = parseInt(anzahlEl.textContent);
-        anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
+    let nurFavoriten = false;
+
+    function gridRendern() {
+      grid.innerHTML = '';
+      const anzuzeigen = nurFavoriten ? alleBilder.filter(b => b.daten.favorit) : alleBilder;
+
+      if (nurFavoriten && anzuzeigen.length === 0) {
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#9a9384; padding:40px 0;">Noch keine Favoriten markiert.</p>';
+        return;
+      }
+
+      anzuzeigen.forEach(({ id, daten, index }) => {
+        const div = document.createElement('div');
+        div.className = 'bild-wrap';
+        div.innerHTML = `
+          <img src="${daten.previewUrl}" alt="" data-index="${index}">
+          <span class="overlay-btn herz" data-id="${id}">${daten.favorit ? '❤️' : '♡'}</span>
+          <span class="overlay-btn lupe">🔍</span>
+        `;
+        grid.appendChild(div);
       });
+
+      herzEventsBinden();
+      lightboxEventsBinden();
+    }
+
+    document.getElementById('icon-alle').addEventListener('click', () => {
+      nurFavoriten = false;
+      document.getElementById('icon-alle').classList.add('aktiv');
+      document.getElementById('icon-favoriten').classList.remove('aktiv');
+      gridRendern();
     });
+    document.getElementById('icon-favoriten').addEventListener('click', () => {
+      nurFavoriten = true;
+      document.getElementById('icon-favoriten').classList.add('aktiv');
+      document.getElementById('icon-alle').classList.remove('aktiv');
+      gridRendern();
+    });
+
+    gridRendern();
+
+    function herzEventsBinden() {
+      document.querySelectorAll('.herz').forEach(herz => {
+        herz.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const bildId = herz.dataset.id;
+          const bildDoc = alleBilder.find(b => b.id === bildId);
+          const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
+          const aktuell = herz.textContent.trim() === '❤️';
+          await updateDoc(bildRef, { favorit: !aktuell });
+          bildDoc.daten.favorit = !aktuell; // lokalen Stand aktualisieren, damit Filter sofort stimmt
+
+          const anzahlEl = document.getElementById('anzahl');
+          let anzahl = parseInt(anzahlEl.textContent);
+          anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
+
+          if (nurFavoriten && aktuell) {
+            // Bild wird gerade aus der Favoriten-Ansicht entfernt -> neu rendern
+            gridRendern();
+          } else {
+            herz.textContent = aktuell ? '♡' : '❤️';
+          }
+        });
+      });
+    }
 
     let aktuellerIndex = 0;
     const lightbox = document.getElementById('lightbox');
@@ -284,9 +355,12 @@
       lightboxImg.src = alleUrls[index];
       lightbox.style.display = 'flex';
     }
-    document.querySelectorAll('.bild-wrap img').forEach(img => {
-      img.addEventListener('click', () => lightboxZeigen(parseInt(img.dataset.index)));
-    });
+
+    function lightboxEventsBinden() {
+      document.querySelectorAll('.bild-wrap img').forEach(img => {
+        img.addEventListener('click', () => lightboxZeigen(parseInt(img.dataset.index)));
+      });
+    }
 
     document.getElementById('lightbox-close').addEventListener('click', () => { lightbox.style.display = 'none'; });
     document.getElementById('lightbox-prev').addEventListener('click', () => {
@@ -306,5 +380,9 @@
     });
   }
 </script>
+<!-- TEMPORÄR: Mobiles Debug-Werkzeug, zeigt Fehler direkt auf dem Handy an. Später wieder entfernen! -->
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
+
 </body>
 </html>
