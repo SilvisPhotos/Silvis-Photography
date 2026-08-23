@@ -120,17 +120,23 @@
       ctx.drawImage(bild, 0, 0, breite, hoehe);
 
       if (logoBild) {
-        // Logo mittig, halbtransparent, ca. 35% der Bildbreite groß
-        const logoBreite = breite * 0.35;
-        const logoHoehe = logoBreite * (logoBild.height / logoBild.width);
-        ctx.globalAlpha = 0.55;
-        ctx.drawImage(
-          logoBild,
-          (breite - logoBreite) / 2,
-          (hoehe - logoHoehe) / 2,
-          logoBreite,
-          logoHoehe
-        );
+        // Logo als sich wiederholendes, sehr dezentes Muster über das GANZE Bild —
+        // schwerer wegzuschneiden als ein einzelnes zentriertes Logo
+        const logoKachelBreite = breite * 0.16;
+        const logoKachelHoehe = logoKachelBreite * (logoBild.height / logoBild.width);
+        const abstandX = logoKachelBreite * 1.8;
+        const abstandY = logoKachelHoehe * 2.4;
+
+        ctx.globalAlpha = 0.12;
+        let reihe = 0;
+        for (let y = -logoKachelHoehe; y < hoehe + logoKachelHoehe; y += abstandY) {
+          // Versetzt jede zweite Reihe, wie ein Ziegelmuster — wirkt gleichmäßiger
+          const versatz = (reihe % 2 === 0) ? 0 : abstandX / 2;
+          for (let x = -logoKachelBreite - versatz; x < breite + logoKachelBreite; x += abstandX) {
+            ctx.drawImage(logoBild, x, y, logoKachelBreite, logoKachelHoehe);
+          }
+          reihe++;
+        }
         ctx.globalAlpha = 1;
       } else {
         // Falls das Logo nicht geladen werden konnte: Text-Wasserzeichen als Rückfalllösung
