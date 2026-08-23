@@ -12,13 +12,7 @@
     --rose:#c98f76; --ink:#2b2a24; --line: rgba(43,42,36,0.14);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    background:#ffffff;
-    min-height:100vh;
-    color:var(--ink);
-    font-family:'Jost',sans-serif;
-    font-weight:300;
-  }
+  body{ background:#ffffff; min-height:100vh; color:var(--ink); font-family:'Jost',sans-serif; font-weight:300; }
 
   .login-body{
     background:
@@ -39,44 +33,48 @@
   .login-box button:hover{ background:var(--moss-deep); }
   #fehler{ color:#a3453b; font-size:13px; margin-top:10px; }
 
+  /* --- Galerie-Ansicht (nach Login), scrappbook-artiges Layout --- */
   .galerie-ansicht{ display:none; }
 
-  .galerie-header{ text-align:center; padding:50px 20px 10px; }
-  .galerie-header .logo-text{ margin-bottom:6px; }
-  .galerie-header .logo-text img{ height:55px; }
-  .galerie-header h1{ font-family:'Fraunces',serif; font-weight:500; font-size:26px; margin-top:18px; }
-  .galerie-header p{ color:var(--moss-deep); font-size:14px; margin-top:6px; }
-  .hinweis{ text-align:center; color:var(--moss-deep); font-size:13px; margin:18px 0 40px; letter-spacing:0.03em; }
+  .topbar{ text-align:center; padding:24px 0 8px; }
+  .topbar img{ height:44px; }
 
-  .slide{
-    position:relative;
-    max-width:1400px;
-    margin:0 auto 120px;
-    padding:0 100px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  .haupt{ display:flex; }
+
+  .sidebar{
+    width:64px; flex-shrink:0;
+    display:flex; flex-direction:column; align-items:center; gap:26px;
+    padding-top:20px; border-right:1px solid var(--line);
+    min-height:calc(100vh - 90px);
   }
-  .slide-side-text{
-    position:absolute;
-    left:20px;
-    top:50%;
-    transform:translateY(-50%) rotate(180deg);
-    writing-mode:vertical-rl;
-    font-size:12px;
-    letter-spacing:0.08em;
-    color:#b8b2a4;
-    white-space:nowrap;
+  .sidebar .icon{ font-size:20px; color:#8a8272; cursor:default; }
+  .sidebar .icon.aktiv{ color:var(--moss); }
+
+  .inhalt{ flex:1; padding:26px 40px 80px; }
+  .titel-zeile{ display:flex; align-items:baseline; gap:14px; margin-bottom:26px; flex-wrap:wrap; }
+  .titel-zeile h1{ font-family:'Fraunces',serif; font-weight:500; font-style:italic; font-size:24px; color:var(--ink); }
+  .titel-zeile .kundenname{ color:#9a9384; font-size:15px; }
+
+  .hinweis{ color:var(--moss-deep); font-size:13px; margin-bottom:24px; letter-spacing:0.02em; }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:6px;
   }
-  .slide-img-wrap{ position:relative; width:100%; cursor:pointer; }
-  .slide-img-wrap img{ width:100%; display:block; box-shadow:0 4px 24px rgba(0,0,0,0.06); }
-  .herz{ position:absolute; top:16px; right:16px; font-size:26px; cursor:pointer; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4)); transition:transform .15s; }
-  .herz:hover{ transform:scale(1.15); }
+  .bild-wrap{ position:relative; overflow:hidden; cursor:pointer; background:#f4f3f0; }
+  .bild-wrap img{ width:100%; height:100%; object-fit:cover; aspect-ratio:2/3; display:block; }
 
-  .scroll-hinweis{ text-align:center; color:#c9c2b2; font-size:22px; margin:-90px 0 60px; animation:bounce 2s infinite; }
-  @keyframes bounce{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(6px);} }
+  .bild-wrap .overlay-btn{
+    position:absolute; opacity:0; transition:opacity .15s;
+    background:rgba(0,0,0,0.0);
+  }
+  .bild-wrap:hover .overlay-btn{ opacity:1; }
+  .herz{ bottom:10px; left:10px; font-size:20px; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+  .lupe{ bottom:10px; right:10px; font-size:18px; color:white; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+  .bild-wrap .overlay-btn{ position:absolute; }
 
-  .footer{ text-align:center; margin:20px 0 80px; color:var(--moss-deep); font-size:14px; }
+  .footer{ text-align:center; margin:36px 0 20px; color:var(--moss-deep); font-size:14px; }
 
   .lightbox{ display:none; position:fixed; inset:0; background:rgba(20,19,15,0.94); z-index:100; align-items:center; justify-content:center; }
   .lightbox img{ max-width:90vw; max-height:85vh; }
@@ -86,9 +84,9 @@
   .lightbox-prev{ left:10px; }
   .lightbox-next{ right:10px; }
 
-  @media (max-width:800px){
-    .slide{ padding:0 20px; }
-    .slide-side-text{ display:none; }
+  @media (max-width:700px){
+    .sidebar{ display:none; }
+    .inhalt{ padding:20px; }
   }
 </style>
 </head>
@@ -107,16 +105,25 @@
 </div>
 
 <div class="galerie-ansicht" id="galerie-ansicht">
-  <div class="galerie-header">
-    <div class="logo-text"><img src="../../images/logo.png" alt="Silvis Photography"></div>
-    <h1 id="galerie-titel"></h1>
-    <p id="begruessung"></p>
+  <div class="topbar"><img src="../../images/logo.png" alt="Silvis Photography"></div>
+
+  <div class="haupt">
+    <div class="sidebar">
+      <span class="icon aktiv">▦</span>
+      <span class="icon">♡</span>
+    </div>
+
+    <div class="inhalt">
+      <div class="titel-zeile">
+        <h1 id="galerie-titel"></h1>
+        <span class="kundenname" id="kundenname"></span>
+      </div>
+      <p class="hinweis" id="hinweis">Markiere deine Favoriten mit ♥ — klick auf ein Bild zum Vergrößern</p>
+
+      <div class="grid" id="grid"></div>
+    </div>
   </div>
-  <p class="hinweis" id="hinweis">Markiere deine Favoriten mit ❤️ — klick auf ein Bild zum Vergrößern</p>
 
-  <div id="slides"></div>
-
-  <div class="scroll-hinweis">⌄</div>
   <div class="footer"><p id="anzahl">0 Bilder markiert</p></div>
 </div>
 
@@ -162,10 +169,9 @@
         document.getElementById('galerie-ansicht').style.display = 'block';
 
         document.getElementById('galerie-titel').textContent = galerie.titel;
-        const begruessungText = galerie.kundeName
-          ? `Hallo ${galerie.kundeName}! Schön, dass du da bist.`
-          : `Schön, dass du da bist!`;
-        document.getElementById('begruessung').textContent = begruessungText;
+        if (galerie.kundeName) {
+          document.getElementById('kundenname').textContent = galerie.kundeName;
+        }
 
         bilderLaden();
       } else {
@@ -177,8 +183,8 @@
 
   async function bilderLaden() {
     const snapshot = await getDocs(collection(db, 'galerien', galerieDocId, 'bilder'));
-    const slidesContainer = document.getElementById('slides');
-    slidesContainer.innerHTML = '';
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
     let favoritenAnzahl = 0;
     const alleUrls = [];
 
@@ -188,16 +194,14 @@
       alleUrls.push(b.previewUrl);
       const index = alleUrls.length - 1;
 
-      const slide = document.createElement('div');
-      slide.className = 'slide';
-      slide.innerHTML = `
-        <span class="slide-side-text">Fotos von Silvis Photography</span>
-        <div class="slide-img-wrap">
-          <img src="${b.previewUrl}" alt="" data-index="${index}">
-          <span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>
-        </div>
+      const div = document.createElement('div');
+      div.className = 'bild-wrap';
+      div.innerHTML = `
+        <img src="${b.previewUrl}" alt="" data-index="${index}">
+        <span class="overlay-btn herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '♡'}</span>
+        <span class="overlay-btn lupe">🔍</span>
       `;
-      slidesContainer.appendChild(slide);
+      grid.appendChild(div);
     });
 
     document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
@@ -209,7 +213,7 @@
         const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
         const aktuell = herz.textContent.trim() === '❤️';
         await updateDoc(bildRef, { favorit: !aktuell });
-        herz.textContent = aktuell ? '🤍' : '❤️';
+        herz.textContent = aktuell ? '♡' : '❤️';
         const anzahlEl = document.getElementById('anzahl');
         let anzahl = parseInt(anzahlEl.textContent);
         anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
@@ -225,7 +229,7 @@
       lightboxImg.src = alleUrls[index];
       lightbox.style.display = 'flex';
     }
-    document.querySelectorAll('.slide-img-wrap img').forEach(img => {
+    document.querySelectorAll('.bild-wrap img').forEach(img => {
       img.addEventListener('click', () => lightboxZeigen(parseInt(img.dataset.index)));
     });
 
