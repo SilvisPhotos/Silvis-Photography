@@ -15,7 +15,7 @@
   body{
     background:
       linear-gradient(rgba(243,234,217,0.75), rgba(243,234,217,0.75)),
-     url('../../images/bg-texture.jpg');
+      url('../../images/bg-texture.jpg');
     background-size:cover;
     background-position:top center;
     background-repeat:repeat-y;
@@ -35,7 +35,12 @@
   .fortschritt{ margin-top:16px; color:var(--moss-deep); font-size:14px; }
   h2{ font-family:'Fraunces',serif; font-weight:500; font-size:19px; color:var(--moss); margin:36px 0 14px; }
   .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
-  .grid img{ width:100%; border-radius:6px; display:block; }
+  .bild-box{ position:relative; border-radius:6px; overflow:hidden; }
+  .bild-box img{ width:100%; display:block; }
+  .titelbild-btn{ position:absolute; bottom:0; left:0; right:0; background:rgba(43,42,36,0.75); color:white; border:none; padding:8px; font-family:'Jost',sans-serif; font-size:12px; cursor:pointer; opacity:0; transition:opacity .15s; }
+  .bild-box:hover .titelbild-btn{ opacity:1; }
+  .bild-box.ist-titelbild .titelbild-btn{ opacity:1; background:var(--moss); }
+  .bild-box.ist-titelbild{ outline:3px solid var(--moss); }
 </style>
 </head>
 <body>
@@ -59,7 +64,7 @@
 
 <script type="module">
   import { db, storage } from "../firebase-config.js";
-  import { collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
   import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
   const params = new URLSearchParams(window.location.search);
@@ -129,12 +134,32 @@
     bilderLaden();
   });
 
+  let aktuellesTitelbild = null;
+
+  async function titelbildSetzen(url) {
+    await updateDoc(doc(db, 'galerien', galerieId), { coverImageUrl: url });
+    aktuellesTitelbild = url;
+    bilderLaden();
+  }
+  window.titelbildSetzen = titelbildSetzen;
+
   async function bilderLaden() {
+    const galerieDoc = await getDoc(doc(db, 'galerien', galerieId));
+    aktuellesTitelbild = galerieDoc.data().coverImageUrl || null;
+
     const snapshot = await getDocs(collection(db, 'galerien', galerieId, 'bilder'));
     const grid = document.getElementById('bilder-grid');
     grid.innerHTML = '';
-    snapshot.forEach(doc => {
-      grid.innerHTML += `<img src="${doc.data().previewUrl}" alt="">`;
+    snapshot.forEach(docSnap => {
+      const url = docSnap.data().previewUrl;
+      const istTitelbild = url === aktuellesTitelbild;
+      const box = document.createElement('div');
+      box.className = 'bild-box' + (istTitelbild ? ' ist-titelbild' : '');
+      box.innerHTML = `
+        <img src="${url}" alt="">
+        <button class="titelbild-btn" onclick="titelbildSetzen('${url}')">${istTitelbild ? '★ Titelbild' : 'Als Titelbild wählen'}</button>
+      `;
+      grid.appendChild(box);
     });
     document.getElementById('bilder-anzahl').textContent = `${snapshot.size} Bilder in dieser Galerie`;
   }
