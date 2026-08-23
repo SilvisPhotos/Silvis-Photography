@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deine Galerie — Silvis Photography</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --sand:#f3ead9; --sand-deep:#e9dcc3; --moss:#5c6b4f; --moss-deep:#3f4a37;
@@ -13,18 +13,22 @@
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
-    background:
-      linear-gradient(rgba(243,234,217,0.75), rgba(243,234,217,0.75)),
-      url('../../images/bg-texture.jpg');
-    background-size:cover;
-    background-position:top center;
-    background-repeat:repeat-y;
+    background:#ffffff;
     min-height:100vh;
     color:var(--ink);
     font-family:'Jost',sans-serif;
     font-weight:300;
   }
-  .logo{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:22px; color:var(--moss); text-align:center; padding:30px 0 10px; }
+
+  .login-body{
+    background:
+      linear-gradient(rgba(243,234,217,0.75), rgba(243,234,217,0.75)),
+      url('../../images/bg-texture.jpg');
+    background-size:cover; background-position:top center; background-repeat:repeat-y;
+    min-height:100vh;
+  }
+  .logo{ text-align:center; padding:40px 0 20px; }
+  .logo img{ height:70px; }
 
   .login-box{ max-width:380px; margin:60px auto; text-align:center; background:white; padding:36px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.05); }
   .login-box .begruessung{ font-family:'Fraunces',serif; font-style:italic; color:var(--rose); font-size:15px; margin-bottom:6px; }
@@ -35,63 +39,86 @@
   .login-box button:hover{ background:var(--moss-deep); }
   #fehler{ color:#a3453b; font-size:13px; margin-top:10px; }
 
-  .begruessung-oben{ display:none; text-align:center; font-family:'Fraunces',serif; font-style:italic; color:var(--rose); font-size:16px; margin-top:20px; }
-  h1.titel{ font-family:'Fraunces',serif; font-weight:500; font-size:28px; text-align:center; display:none; margin-top:4px; }
-  .begruessung{ text-align:center; display:none; font-size:16px; color:var(--ink); margin-top:8px; }
-  .hinweis{ text-align:center; color:var(--moss-deep); font-size:14px; display:none; margin-top:6px; }
+  .galerie-ansicht{ display:none; }
 
-  .grid{ display:none; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; max-width:1200px; margin:34px auto; padding:0 24px; }
-  .bild-wrap{ position:relative; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.06); cursor:pointer; }
-  .bild-wrap img{ width:100%; display:block; transition:transform .3s; }
-  .bild-wrap:hover img{ transform:scale(1.04); }
+  .galerie-header{ text-align:center; padding:50px 20px 10px; }
+  .galerie-header .logo-text{ margin-bottom:6px; }
+  .galerie-header .logo-text img{ height:55px; }
+  .galerie-header h1{ font-family:'Fraunces',serif; font-weight:500; font-size:26px; margin-top:18px; }
+  .galerie-header p{ color:var(--moss-deep); font-size:14px; margin-top:6px; }
+  .hinweis{ text-align:center; color:var(--moss-deep); font-size:13px; margin:18px 0 40px; letter-spacing:0.03em; }
 
-  .hero{ display:none; position:relative; max-width:1200px; margin:0 auto; padding:0 24px; }
-  .hero-img{ width:100%; max-height:65vh; object-fit:cover; border-radius:14px; display:block; }
-  .hero-overlay{ position:absolute; bottom:0; left:24px; right:24px; padding:40px 30px 26px; background:linear-gradient(transparent, rgba(0,0,0,0.55)); border-radius:0 0 14px 14px; }
-  .hero-overlay h1{ font-family:'Fraunces',serif; font-weight:500; font-size:34px; color:white; margin:0; }
-  .hero-overlay p{ color:rgba(255,255,255,0.9); font-size:15px; margin-top:6px; }
+  .slide{
+    position:relative;
+    max-width:1400px;
+    margin:0 auto 120px;
+    padding:0 100px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .slide-side-text{
+    position:absolute;
+    left:20px;
+    top:50%;
+    transform:translateY(-50%) rotate(180deg);
+    writing-mode:vertical-rl;
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:#b8b2a4;
+    white-space:nowrap;
+  }
+  .slide-img-wrap{ position:relative; width:100%; cursor:pointer; }
+  .slide-img-wrap img{ width:100%; display:block; box-shadow:0 4px 24px rgba(0,0,0,0.06); }
+  .herz{ position:absolute; top:16px; right:16px; font-size:26px; cursor:pointer; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4)); transition:transform .15s; }
+  .herz:hover{ transform:scale(1.15); }
 
-  .lightbox{ display:none; position:fixed; inset:0; background:rgba(20,19,15,0.92); z-index:100; align-items:center; justify-content:center; }
-  .lightbox img{ max-width:90vw; max-height:85vh; border-radius:6px; }
+  .scroll-hinweis{ text-align:center; color:#c9c2b2; font-size:22px; margin:-90px 0 60px; animation:bounce 2s infinite; }
+  @keyframes bounce{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(6px);} }
+
+  .footer{ text-align:center; margin:20px 0 80px; color:var(--moss-deep); font-size:14px; }
+
+  .lightbox{ display:none; position:fixed; inset:0; background:rgba(20,19,15,0.94); z-index:100; align-items:center; justify-content:center; }
+  .lightbox img{ max-width:90vw; max-height:85vh; }
   .lightbox-close{ position:absolute; top:22px; right:30px; color:white; font-size:34px; cursor:pointer; background:none; border:none; line-height:1; }
-  .lightbox-nav{ position:absolute; top:50%; transform:translateY(-50%); background:none; border:none; color:white; font-size:44px; cursor:pointer; padding:10px 18px; opacity:0.8; }
+  .lightbox-nav{ position:absolute; top:50%; transform:translateY(-50%); background:none; border:none; color:white; font-size:44px; cursor:pointer; padding:10px 18px; opacity:0.7; }
   .lightbox-nav:hover{ opacity:1; }
   .lightbox-prev{ left:10px; }
   .lightbox-next{ right:10px; }
-  .herz{ position:absolute; top:12px; right:12px; font-size:26px; cursor:pointer; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4)); transition:transform .15s; }
-  .herz:hover{ transform:scale(1.15); }
 
-  .footer{ display:none; text-align:center; margin:40px 0 60px; color:var(--moss-deep); font-size:14px; }
+  @media (max-width:800px){
+    .slide{ padding:0 20px; }
+    .slide-side-text{ display:none; }
+  }
 </style>
 </head>
 <body>
 
-<div class="logo">Silvis Photography</div>
-
-<div class="login-box" id="login-box">
-  <p class="begruessung">Schön, dass ihr da seid!</p>
-  <h1 id="galerie-titel-login">Galerie</h1>
-  <p>Diese Galerie ist passwortgeschützt.</p>
-  <input type="password" id="passwort-input" placeholder="Passwort">
-  <button id="passwort-btn">Ansehen</button>
-  <p id="fehler"></p>
-</div>
-
-<p class="begruessung-oben" id="begruessung-oben">Schön, dass ihr da seid!</p>
-<h1 class="titel" id="galerie-titel"></h1>
-<p class="begruessung" id="begruessung"></p>
-
-<div class="hero" id="hero">
-  <img class="hero-img" id="hero-img" src="" alt="">
-  <div class="hero-overlay">
-    <h1 id="hero-titel"></h1>
-    <p id="hero-untertitel"></p>
+<div id="login-wrapper" class="login-body">
+  <div class="logo"><img src="../../images/logo.png" alt="Silvis Photography"></div>
+  <div class="login-box" id="login-box">
+    <p class="begruessung">Schön, dass ihr da seid!</p>
+    <h1 id="galerie-titel-login">Galerie</h1>
+    <p>Diese Galerie ist passwortgeschützt.</p>
+    <input type="password" id="passwort-input" placeholder="Passwort">
+    <button id="passwort-btn">Ansehen</button>
+    <p id="fehler"></p>
   </div>
 </div>
 
-<p class="hinweis" id="hinweis">Markiere deine Favoriten mit ❤️</p>
-<div class="grid" id="grid"></div>
-<div class="footer" id="footer"><p id="anzahl">0 Bilder markiert</p></div>
+<div class="galerie-ansicht" id="galerie-ansicht">
+  <div class="galerie-header">
+    <div class="logo-text"><img src="../../images/logo.png" alt="Silvis Photography"></div>
+    <h1 id="galerie-titel"></h1>
+    <p id="begruessung"></p>
+  </div>
+  <p class="hinweis" id="hinweis">Markiere deine Favoriten mit ❤️ — klick auf ein Bild zum Vergrößern</p>
+
+  <div id="slides"></div>
+
+  <div class="scroll-hinweis">⌄</div>
+  <div class="footer"><p id="anzahl">0 Bilder markiert</p></div>
+</div>
 
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" id="lightbox-close">&times;</button>
@@ -131,29 +158,15 @@
       const eingabe = document.getElementById('passwort-input').value;
       const hash = await einfacherHash(eingabe);
       if (hash === galerie.passwortHash) {
-        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('login-wrapper').style.display = 'none';
+        document.getElementById('galerie-ansicht').style.display = 'block';
 
+        document.getElementById('galerie-titel').textContent = galerie.titel;
         const begruessungText = galerie.kundeName
           ? `Hallo ${galerie.kundeName}! Schön, dass du da bist.`
           : `Schön, dass du da bist!`;
+        document.getElementById('begruessung').textContent = begruessungText;
 
-        if (galerie.coverImageUrl) {
-          // Großes Titelbild anzeigen, statt schlichtem Text-Header
-          document.getElementById('hero').style.display = 'block';
-          document.getElementById('hero-img').src = galerie.coverImageUrl;
-          document.getElementById('hero-titel').textContent = galerie.titel;
-          document.getElementById('hero-untertitel').textContent = begruessungText;
-        } else {
-          // Kein Titelbild gewählt -> einfacher Text-Header wie bisher
-          document.getElementById('galerie-titel').style.display = 'block';
-          document.getElementById('galerie-titel').textContent = galerie.titel;
-          document.getElementById('begruessung').style.display = 'block';
-          document.getElementById('begruessung').textContent = begruessungText;
-        }
-
-        document.getElementById('hinweis').style.display = 'block';
-        document.getElementById('grid').style.display = 'grid';
-        document.getElementById('footer').style.display = 'block';
         bilderLaden();
       } else {
         document.getElementById('fehler').textContent = 'Falsches Passwort.';
@@ -164,8 +177,8 @@
 
   async function bilderLaden() {
     const snapshot = await getDocs(collection(db, 'galerien', galerieDocId, 'bilder'));
-    const grid = document.getElementById('grid');
-    grid.innerHTML = '';
+    const slidesContainer = document.getElementById('slides');
+    slidesContainer.innerHTML = '';
     let favoritenAnzahl = 0;
     const alleUrls = [];
 
@@ -174,15 +187,21 @@
       if (b.favorit) favoritenAnzahl++;
       alleUrls.push(b.previewUrl);
       const index = alleUrls.length - 1;
-      const div = document.createElement('div');
-      div.className = 'bild-wrap';
-      div.innerHTML = `<img src="${b.previewUrl}" alt="" data-index="${index}"><span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>`;
-      grid.appendChild(div);
+
+      const slide = document.createElement('div');
+      slide.className = 'slide';
+      slide.innerHTML = `
+        <span class="slide-side-text">Fotos von Silvis Photography</span>
+        <div class="slide-img-wrap">
+          <img src="${b.previewUrl}" alt="" data-index="${index}">
+          <span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>
+        </div>
+      `;
+      slidesContainer.appendChild(slide);
     });
 
     document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
 
-    // Herz-Klick: Favorit umschalten (Klick aufs Bild öffnet stattdessen die Lightbox)
     document.querySelectorAll('.herz').forEach(herz => {
       herz.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -197,7 +216,6 @@
       });
     });
 
-    // Bild-Klick: Lightbox öffnen
     let aktuellerIndex = 0;
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightbox-img');
@@ -207,13 +225,11 @@
       lightboxImg.src = alleUrls[index];
       lightbox.style.display = 'flex';
     }
-    document.querySelectorAll('.bild-wrap img').forEach(img => {
+    document.querySelectorAll('.slide-img-wrap img').forEach(img => {
       img.addEventListener('click', () => lightboxZeigen(parseInt(img.dataset.index)));
     });
 
-    document.getElementById('lightbox-close').addEventListener('click', () => {
-      lightbox.style.display = 'none';
-    });
+    document.getElementById('lightbox-close').addEventListener('click', () => { lightbox.style.display = 'none'; });
     document.getElementById('lightbox-prev').addEventListener('click', () => {
       aktuellerIndex = (aktuellerIndex - 1 + alleUrls.length) % alleUrls.length;
       lightboxImg.src = alleUrls[aktuellerIndex];
@@ -222,9 +238,7 @@
       aktuellerIndex = (aktuellerIndex + 1) % alleUrls.length;
       lightboxImg.src = alleUrls[aktuellerIndex];
     });
-    lightbox.addEventListener('click', (e) => {
-      if (e.target === lightbox) lightbox.style.display = 'none';
-    });
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.style.display = 'none'; });
     document.addEventListener('keydown', (e) => {
       if (lightbox.style.display !== 'flex') return;
       if (e.key === 'Escape') lightbox.style.display = 'none';
