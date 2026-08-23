@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Bilder hochladen</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; color: #2B2A24; }
+  h1 { color: #5C6B4F; }
+  .upload-box { border: 2px dashed #D9D2C2; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0; }
+  button { padding: 12px 24px; background: #5C6B4F; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 16px; }
+  .fortschritt { margin-top: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 30px; }
+  .grid img { width: 100%; border-radius: 4px; }
+</style>
+</head>
+<body>
+  <h1>Bilder hochladen</h1>
+  <p id="galerie-titel"></p>
+
+  <div class="upload-box">
+    <input type="file" id="datei-input" multiple accept="image/jpeg,image/png">
+    <p>Mehrere Bilder gleichzeitig auswählbar. Wasserzeichen wird automatisch erzeugt.</p>
+  </div>
+  <button id="upload-btn">Hochladen</button>
+  <div class="fortschritt" id="fortschritt"></div>
+
+  <h2>Bereits hochgeladen</h2>
+  <div class="grid" id="bilder-grid"></div>
+
+  <!-- Verstecktes Canvas fürs Wasserzeichen -->
+  <canvas id="wz-canvas" style="display:none;"></canvas>
+
+<script type="module">
+  import { db, storage } from "../firebase-config.js";
+  import { collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('g');
+
+  let galerieId = null;
+
+  async function galerieFinden() {
+    const q = query(collection(db, 'galerien'), where('slug', '==', slug));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      alert('Galerie nicht gefunden.');
+      return;
+    }
+    const doc = snapshot.docs[0];
+    galerieId = doc.id;
+    document.getElementById('galerie-titel').textContent = doc.data().titel;
+    bilderLaden();
+  }
+  galerieFinden();
+
+  // Wasserzeichen mit Canvas erzeugen -> gibt ein neues Blob zurück
+  function wasserzeichenErstellen(bild) {
+    return new Promise((resolve) => {
+      const canvas = document.getElementById('wz-canvas');
+      canvas.width = bild.width;
+      canvas.height = bild.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bild, 0, 0);
+
+      // Diagonalen, halbtransparenten Text wiederholt über das Bild legen
+      ctx.font = `${Math.floor(bild.width / 20)}px sans-serif`;
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.textAlign = 'center';
+      ctx.save();
+      ctx.translate(bild.width / 2, bild.height / 2);
+      ctx.rotate(-Math.PI / 6);
+      for (let y = -bild.height; y < bild.height; y += bild.height / 4) {
+        ctx.fillText('SILVIS PHOTOGRAPHY', 0, y);
+      }
+      ctx.restore();
+
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+    });
+  }
+
+  function bildLaden(datei) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.src = URL.createObjectURL(datei);
+    });
+  }
+
+  document.getElementById('upload-btn').addEventListener('click', async () => {
+    const dateien = document.getElementById('datei-input').files;
+    if (!dateien.length) return alert('Bitte Dateien auswählen.');
+
+    const fortschrittEl = document.getElementById('fortschritt');
+
+    for (let i = 0; i < dateien.length; i++) {
+      const datei = dateien[i];
+      fortschrittEl.textContent = `Lade hoch: ${i + 1}/${dateien.length}...`;
+
+      const bild = await bildLaden(datei);
+      const wzBlob = await wasserzeichenErstellen(bild);
+
+      const dateiId = crypto.randomUUID();
+      const originalRef = ref(storage, `galerien/${galerieId}/original/${dateiId}.jpg`);
+      const previewRef = ref(storage, `galerien/${galerieId}/preview/${dateiId}.jpg`);
+
+      await uploadBytes(originalRef, datei);
+      await uploadBytes(previewRef, wzBlob);
+
+      const previewUrl = await getDownloadURL(previewRef);
+
+      await addDoc(collection(db, 'galerien', galerieId, 'bilder'), {
+        dateiId, previewUrl,
+        hochgeladenAm: serverTimestamp()
+      });
+    }
+
+    fortschrittEl.textContent = 'Fertig!';
+    bilderLaden();
+  });
+
+  async function bilderLaden() {
+    const snapshot = await getDocs(collection(db, 'galerien', galerieId, 'bilder'));
+    const grid = document.getElementById('bilder-grid');
+    grid.innerHTML = '';
+    snapshot.forEach(doc => {
+      const b = doc.data();
+      grid.innerHTML += `<img src="${b.previewUrl}" alt="">`;
+    });
+  }
+</script>
+</body>
+</html>
