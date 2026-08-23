@@ -27,6 +27,7 @@
   .logo{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:22px; color:var(--moss); text-align:center; padding:30px 0 10px; }
 
   .login-box{ max-width:380px; margin:60px auto; text-align:center; background:white; padding:36px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.05); }
+  .login-box .begruessung{ font-family:'Fraunces',serif; font-style:italic; color:var(--rose); font-size:15px; margin-bottom:6px; }
   .login-box h1{ font-family:'Fraunces',serif; font-weight:500; font-size:22px; margin-bottom:10px; }
   .login-box p{ color:var(--moss-deep); font-size:14px; margin-bottom:16px; }
   .login-box input{ width:100%; padding:12px; border:1px solid var(--line); border-radius:6px; font-family:'Jost',sans-serif; font-size:15px; box-sizing:border-box; }
@@ -34,12 +35,29 @@
   .login-box button:hover{ background:var(--moss-deep); }
   #fehler{ color:#a3453b; font-size:13px; margin-top:10px; }
 
-  h1.titel{ font-family:'Fraunces',serif; font-weight:500; font-size:28px; text-align:center; display:none; margin-top:10px; }
+  .begruessung-oben{ display:none; text-align:center; font-family:'Fraunces',serif; font-style:italic; color:var(--rose); font-size:16px; margin-top:20px; }
+  h1.titel{ font-family:'Fraunces',serif; font-weight:500; font-size:28px; text-align:center; display:none; margin-top:4px; }
+  .begruessung{ text-align:center; display:none; font-size:16px; color:var(--ink); margin-top:8px; }
   .hinweis{ text-align:center; color:var(--moss-deep); font-size:14px; display:none; margin-top:6px; }
 
   .grid{ display:none; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; max-width:1200px; margin:34px auto; padding:0 24px; }
-  .bild-wrap{ position:relative; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
-  .bild-wrap img{ width:100%; display:block; }
+  .bild-wrap{ position:relative; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.06); cursor:pointer; }
+  .bild-wrap img{ width:100%; display:block; transition:transform .3s; }
+  .bild-wrap:hover img{ transform:scale(1.04); }
+
+  .hero{ display:none; position:relative; max-width:1200px; margin:0 auto; padding:0 24px; }
+  .hero-img{ width:100%; max-height:65vh; object-fit:cover; border-radius:14px; display:block; }
+  .hero-overlay{ position:absolute; bottom:0; left:24px; right:24px; padding:40px 30px 26px; background:linear-gradient(transparent, rgba(0,0,0,0.55)); border-radius:0 0 14px 14px; }
+  .hero-overlay h1{ font-family:'Fraunces',serif; font-weight:500; font-size:34px; color:white; margin:0; }
+  .hero-overlay p{ color:rgba(255,255,255,0.9); font-size:15px; margin-top:6px; }
+
+  .lightbox{ display:none; position:fixed; inset:0; background:rgba(20,19,15,0.92); z-index:100; align-items:center; justify-content:center; }
+  .lightbox img{ max-width:90vw; max-height:85vh; border-radius:6px; }
+  .lightbox-close{ position:absolute; top:22px; right:30px; color:white; font-size:34px; cursor:pointer; background:none; border:none; line-height:1; }
+  .lightbox-nav{ position:absolute; top:50%; transform:translateY(-50%); background:none; border:none; color:white; font-size:44px; cursor:pointer; padding:10px 18px; opacity:0.8; }
+  .lightbox-nav:hover{ opacity:1; }
+  .lightbox-prev{ left:10px; }
+  .lightbox-next{ right:10px; }
   .herz{ position:absolute; top:12px; right:12px; font-size:26px; cursor:pointer; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4)); transition:transform .15s; }
   .herz:hover{ transform:scale(1.15); }
 
@@ -51,6 +69,7 @@
 <div class="logo">Silvis Photography</div>
 
 <div class="login-box" id="login-box">
+  <p class="begruessung">Schön, dass ihr da seid!</p>
   <h1 id="galerie-titel-login">Galerie</h1>
   <p>Diese Galerie ist passwortgeschützt.</p>
   <input type="password" id="passwort-input" placeholder="Passwort">
@@ -58,10 +77,28 @@
   <p id="fehler"></p>
 </div>
 
+<p class="begruessung-oben" id="begruessung-oben">Schön, dass ihr da seid!</p>
 <h1 class="titel" id="galerie-titel"></h1>
+<p class="begruessung" id="begruessung"></p>
+
+<div class="hero" id="hero">
+  <img class="hero-img" id="hero-img" src="" alt="">
+  <div class="hero-overlay">
+    <h1 id="hero-titel"></h1>
+    <p id="hero-untertitel"></p>
+  </div>
+</div>
+
 <p class="hinweis" id="hinweis">Markiere deine Favoriten mit ❤️</p>
 <div class="grid" id="grid"></div>
 <div class="footer" id="footer"><p id="anzahl">0 Bilder markiert</p></div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev">&#8249;</button>
+  <img id="lightbox-img" src="" alt="">
+  <button class="lightbox-nav lightbox-next" id="lightbox-next">&#8250;</button>
+</div>
 
 <script type="module">
   import { db } from "../firebase-config.js";
@@ -95,8 +132,25 @@
       const hash = await einfacherHash(eingabe);
       if (hash === galerie.passwortHash) {
         document.getElementById('login-box').style.display = 'none';
-        document.getElementById('galerie-titel').style.display = 'block';
-        document.getElementById('galerie-titel').textContent = galerie.titel;
+
+        const begruessungText = galerie.kundeName
+          ? `Hallo ${galerie.kundeName}! Schön, dass du da bist.`
+          : `Schön, dass du da bist!`;
+
+        if (galerie.coverImageUrl) {
+          // Großes Titelbild anzeigen, statt schlichtem Text-Header
+          document.getElementById('hero').style.display = 'block';
+          document.getElementById('hero-img').src = galerie.coverImageUrl;
+          document.getElementById('hero-titel').textContent = galerie.titel;
+          document.getElementById('hero-untertitel').textContent = begruessungText;
+        } else {
+          // Kein Titelbild gewählt -> einfacher Text-Header wie bisher
+          document.getElementById('galerie-titel').style.display = 'block';
+          document.getElementById('galerie-titel').textContent = galerie.titel;
+          document.getElementById('begruessung').style.display = 'block';
+          document.getElementById('begruessung').textContent = begruessungText;
+        }
+
         document.getElementById('hinweis').style.display = 'block';
         document.getElementById('grid').style.display = 'grid';
         document.getElementById('footer').style.display = 'block';
@@ -113,20 +167,25 @@
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
     let favoritenAnzahl = 0;
+    const alleUrls = [];
 
     snapshot.forEach(docSnap => {
       const b = docSnap.data();
       if (b.favorit) favoritenAnzahl++;
+      alleUrls.push(b.previewUrl);
+      const index = alleUrls.length - 1;
       const div = document.createElement('div');
       div.className = 'bild-wrap';
-      div.innerHTML = `<img src="${b.previewUrl}" alt=""><span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>`;
+      div.innerHTML = `<img src="${b.previewUrl}" alt="" data-index="${index}"><span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>`;
       grid.appendChild(div);
     });
 
     document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
 
+    // Herz-Klick: Favorit umschalten (Klick aufs Bild öffnet stattdessen die Lightbox)
     document.querySelectorAll('.herz').forEach(herz => {
-      herz.addEventListener('click', async () => {
+      herz.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const bildId = herz.dataset.id;
         const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
         const aktuell = herz.textContent.trim() === '❤️';
@@ -136,6 +195,41 @@
         let anzahl = parseInt(anzahlEl.textContent);
         anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
       });
+    });
+
+    // Bild-Klick: Lightbox öffnen
+    let aktuellerIndex = 0;
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    function lightboxZeigen(index) {
+      aktuellerIndex = index;
+      lightboxImg.src = alleUrls[index];
+      lightbox.style.display = 'flex';
+    }
+    document.querySelectorAll('.bild-wrap img').forEach(img => {
+      img.addEventListener('click', () => lightboxZeigen(parseInt(img.dataset.index)));
+    });
+
+    document.getElementById('lightbox-close').addEventListener('click', () => {
+      lightbox.style.display = 'none';
+    });
+    document.getElementById('lightbox-prev').addEventListener('click', () => {
+      aktuellerIndex = (aktuellerIndex - 1 + alleUrls.length) % alleUrls.length;
+      lightboxImg.src = alleUrls[aktuellerIndex];
+    });
+    document.getElementById('lightbox-next').addEventListener('click', () => {
+      aktuellerIndex = (aktuellerIndex + 1) % alleUrls.length;
+      lightboxImg.src = alleUrls[aktuellerIndex];
+    });
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) lightbox.style.display = 'none';
+    });
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.style.display !== 'flex') return;
+      if (e.key === 'Escape') lightbox.style.display = 'none';
+      if (e.key === 'ArrowLeft') document.getElementById('lightbox-prev').click();
+      if (e.key === 'ArrowRight') document.getElementById('lightbox-next').click();
     });
   }
 </script>
