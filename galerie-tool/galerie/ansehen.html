@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deine Galerie</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #FAFAF8; margin: 0; padding: 20px; color: #2B2A24; }
+  h1 { color: #5C6B4F; text-align: center; }
+  .login-box { max-width: 350px; margin: 100px auto; text-align: center; background: white; padding: 40px; border-radius: 8px; }
+  .login-box input { width: 100%; padding: 12px; margin-top: 16px; border: 1px solid #D9D2C2; border-radius: 4px; box-sizing: border-box; }
+  .login-box button { margin-top: 16px; padding: 12px 24px; background: #5C6B4F; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+  .grid { display: none; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; max-width: 1200px; margin: 30px auto; }
+  .bild-wrap { position: relative; border-radius: 8px; overflow: hidden; }
+  .bild-wrap img { width: 100%; display: block; }
+  .herz { position: absolute; top: 10px; right: 10px; font-size: 28px; cursor: pointer; filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
+  .footer { display:none; text-align: center; margin-top: 40px; color: #6B6560; }
+</style>
+</head>
+<body>
+
+<div class="login-box" id="login-box">
+  <h1 id="galerie-titel-login">Galerie</h1>
+  <p>Diese Galerie ist passwortgeschützt.</p>
+  <input type="password" id="passwort-input" placeholder="Passwort">
+  <button id="passwort-btn">Ansehen</button>
+  <p id="fehler" style="color:red;"></p>
+</div>
+
+<h1 id="galerie-titel" style="display:none;"></h1>
+<p style="text-align:center; color:#6B6560; display:none;" id="hinweis">Markiere deine Favoriten mit ❤️</p>
+<div class="grid" id="grid"></div>
+<div class="footer" id="footer">
+  <p id="anzahl">0 Bilder markiert</p>
+</div>
+
+<script type="module">
+  import { db } from "../firebase-config.js";
+  import { collection, getDocs, query, where, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('g');
+  let galerieDocId = null;
+
+  async function einfacherHash(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function galerieLaden() {
+    const q = query(collection(db, 'galerien'), where('slug', '==', slug));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      document.body.innerHTML = '<p style="text-align:center; margin-top:100px;">Galerie nicht gefunden.</p>';
+      return;
+    }
+    const docSnap = snapshot.docs[0];
+    galerieDocId = docSnap.id;
+    const galerie = docSnap.data();
+    document.getElementById('galerie-titel-login').textContent = galerie.titel;
+
+    document.getElementById('passwort-btn').addEventListener('click', async () => {
+      const eingabe = document.getElementById('passwort-input').value;
+      const hash = await einfacherHash(eingabe);
+      if (hash === galerie.passwortHash) {
+        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('galerie-titel').style.display = 'block';
+        document.getElementById('galerie-titel').textContent = galerie.titel;
+        document.getElementById('hinweis').style.display = 'block';
+        document.getElementById('grid').style.display = 'grid';
+        document.getElementById('footer').style.display = 'block';
+        bilderLaden();
+      } else {
+        document.getElementById('fehler').textContent = 'Falsches Passwort.';
+      }
+    });
+  }
+  galerieLaden();
+
+  async function bilderLaden() {
+    const snapshot = await getDocs(collection(db, 'galerien', galerieDocId, 'bilder'));
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    let favoritenAnzahl = 0;
+
+    snapshot.forEach(docSnap => {
+      const b = docSnap.data();
+      if (b.favorit) favoritenAnzahl++;
+      const div = document.createElement('div');
+      div.className = 'bild-wrap';
+      div.innerHTML = `
+        <img src="${b.previewUrl}" alt="">
+        <span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>
+      `;
+      grid.appendChild(div);
+    });
+
+    document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
+
+    document.querySelectorAll('.herz').forEach(herz => {
+      herz.addEventListener('click', async () => {
+        const bildId = herz.dataset.id;
+        const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
+        const aktuell = herz.textContent.trim() === '❤️';
+        await updateDoc(bildRef, { favorit: !aktuell });
+        herz.textContent = aktuell ? '🤍' : '❤️';
+        const anzahlEl = document.getElementById('anzahl');
+        let anzahl = parseInt(anzahlEl.textContent);
+        anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
+      });
+    });
+  }
+</script>
+</body>
+</html>
