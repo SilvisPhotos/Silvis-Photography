@@ -12,7 +12,18 @@
     --rose:#c98f76; --ink:#2b2a24; --line: rgba(43,42,36,0.14);
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{ background:var(--sand); min-height:100vh; color:var(--ink); font-family:'Jost',sans-serif; font-weight:300; }
+  body{
+    background:
+      linear-gradient(rgba(243,234,217,0.75), rgba(243,234,217,0.75)),
+      url('../images/bg-texture.jpg');
+    background-size:cover;
+    background-position:top center;
+    background-repeat:repeat-y;
+    min-height:100vh;
+    color:var(--ink);
+    font-family:'Jost',sans-serif;
+    font-weight:300;
+  }
   .logo{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:22px; color:var(--moss); text-align:center; padding:30px 0 10px; }
 
   .login-box{ max-width:380px; margin:60px auto; text-align:center; background:white; padding:36px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.05); }
@@ -63,6 +74,73 @@
   async function einfacherHash(text) {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function galerieLaden() {
+    const q = query(collection(db, 'galerien'), where('slug', '==', slug));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      document.body.innerHTML = '<p style="text-align:center; margin-top:100px; font-family:Jost,sans-serif;">Galerie nicht gefunden.</p>';
+      return;
+    }
+    const docSnap = snapshot.docs[0];
+    galerieDocId = docSnap.id;
+    const galerie = docSnap.data();
+    document.getElementById('galerie-titel-login').textContent = galerie.titel;
+
+    document.getElementById('passwort-btn').addEventListener('click', async () => {
+      const eingabe = document.getElementById('passwort-input').value;
+      const hash = await einfacherHash(eingabe);
+      if (hash === galerie.passwortHash) {
+        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('galerie-titel').style.display = 'block';
+        document.getElementById('galerie-titel').textContent = galerie.titel;
+        document.getElementById('hinweis').style.display = 'block';
+        document.getElementById('grid').style.display = 'grid';
+        document.getElementById('footer').style.display = 'block';
+        bilderLaden();
+      } else {
+        document.getElementById('fehler').textContent = 'Falsches Passwort.';
+      }
+    });
+  }
+  galerieLaden();
+
+  async function bilderLaden() {
+    const snapshot = await getDocs(collection(db, 'galerien', galerieDocId, 'bilder'));
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    let favoritenAnzahl = 0;
+
+    snapshot.forEach(docSnap => {
+      const b = docSnap.data();
+      if (b.favorit) favoritenAnzahl++;
+      const div = document.createElement('div');
+      div.className = 'bild-wrap';
+      div.innerHTML = `<img src="${b.previewUrl}" alt=""><span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>`;
+      grid.appendChild(div);
+    });
+
+    document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
+
+    document.querySelectorAll('.herz').forEach(herz => {
+      herz.addEventListener('click', async () => {
+        const bildId = herz.dataset.id;
+        const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
+        const aktuell = herz.textContent.trim() === '❤️';
+        await updateDoc(bildRef, { favorit: !aktuell });
+        herz.textContent = aktuell ? '🤍' : '❤️';
+        const anzahlEl = document.getElementById('anzahl');
+        let anzahl = parseInt(anzahlEl.textContent);
+        anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
+      });
+    });
+  }
+</script>
+</body>
+</html>
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
