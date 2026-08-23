@@ -102,7 +102,7 @@
       erstelltAm: serverTimestamp()
     });
 
-    const link = `${window.location.origin}/galerie/ansehen.html?g=${slug}`;
+  const link = `${window.location.origin}${window.location.pathname.replace('admin/index.html', '')}galerie/ansehen.html?g=${slug}`;
     const box = document.getElementById('erfolg-box');
     box.style.display = 'block';
     box.innerHTML = `Galerie erstellt!<br>Link: <a href="${link}">${link}</a><br>Passwort: ${passwort}`;
