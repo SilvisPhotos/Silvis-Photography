@@ -119,26 +119,17 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(bild, 0, 0, breite, hoehe);
 
-      if (logoBild) {
-        // Logo als sich wiederholendes, sehr dezentes Muster über das GANZE Bild —
-        // schwerer wegzuschneiden als ein einzelnes zentriertes Logo
-        const logoKachelBreite = breite * 0.16;
-        const logoKachelHoehe = logoKachelBreite * (logoBild.height / logoBild.width);
-        const abstandX = logoKachelBreite * 1.8;
-        const abstandY = logoKachelHoehe * 2.4;
+    if (logoBild) {
+  // Ein einzelnes, großes Logo mittig über dem ganzen Bild
+  const logoBreite = breite * 0.5;
+  const logoHoehe = logoBreite * (logoBild.height / logoBild.width);
+  const x = (breite - logoBreite) / 2;
+  const y = (hoehe - logoHoehe) / 2;
 
-        ctx.globalAlpha = 0.22;
-        let reihe = 0;
-        for (let y = -logoKachelHoehe; y < hoehe + logoKachelHoehe; y += abstandY) {
-          // Versetzt jede zweite Reihe, wie ein Ziegelmuster — wirkt gleichmäßiger
-          const versatz = (reihe % 2 === 0) ? 0 : abstandX / 2;
-          for (let x = -logoKachelBreite - versatz; x < breite + logoKachelBreite; x += abstandX) {
-            ctx.drawImage(logoBild, x, y, logoKachelBreite, logoKachelHoehe);
-          }
-          reihe++;
-        }
-        ctx.globalAlpha = 1;
-      } else {
+  ctx.globalAlpha = 0.25;
+  ctx.drawImage(logoBild, x, y, logoBreite, logoHoehe);
+  ctx.globalAlpha = 1;
+} else {
         // Falls das Logo nicht geladen werden konnte: Text-Wasserzeichen als Rückfalllösung
         ctx.font = `${Math.floor(breite / 20)}px sans-serif`;
         ctx.fillStyle = 'rgba(255,255,255,0.35)';
