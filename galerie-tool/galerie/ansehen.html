@@ -75,6 +75,11 @@
   .bild-wrap .overlay-btn{ position:absolute; }
 
   .footer{ text-align:center; margin:36px 0 20px; color:var(--moss-deep); font-size:14px; }
+  .download-bereich{ text-align:center; margin:30px auto 10px; padding:24px; max-width:500px; background:var(--sand-deep); border-radius:10px; }
+  .download-bereich p{ font-size:14px; color:var(--moss-deep); margin-bottom:14px; }
+  .download-bereich button{ padding:12px 26px; background:var(--moss); color:white; border:none; border-radius:6px; cursor:pointer; font-family:'Jost',sans-serif; font-size:15px; }
+  .download-bereich button:hover{ background:var(--moss-deep); }
+  .download-bereich button:disabled{ opacity:0.6; cursor:not-allowed; }
 
   .lightbox{ display:none; position:fixed; inset:0; background:rgba(20,19,15,0.94); z-index:100; align-items:center; justify-content:center; }
   .lightbox img{ max-width:90vw; max-height:85vh; }
@@ -124,6 +129,11 @@
     </div>
   </div>
 
+  <div class="download-bereich" id="download-bereich" style="display:none;">
+    <p>🎉 Deine finalen Bilder sind bereit! Lade deine ausgewählten Favoriten in voller Auflösung herunter.</p>
+    <button id="download-alle-btn">Ausgewählte Bilder herunterladen</button>
+  </div>
+
   <div class="footer"><p id="anzahl">0 Bilder markiert</p></div>
 </div>
 
@@ -135,8 +145,9 @@
 </div>
 
 <script type="module">
-  import { db } from "../firebase-config.js";
+  import { db, storage } from "../firebase-config.js";
   import { collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('g');
@@ -173,6 +184,10 @@
           document.getElementById('kundenname').textContent = galerie.kundeName;
         }
 
+        if (galerie.downloadFreigegeben === true) {
+          document.getElementById('download-bereich').style.display = 'block';
+        }
+
         bilderLaden();
       } else {
         document.getElementById('fehler').textContent = 'Falsches Passwort.';
@@ -183,6 +198,46 @@
 
   async function bilderLaden() {
     const snapshot = await getDocs(collection(db, 'galerien', galerieDocId, 'bilder'));
+
+    // Download-Button: lädt alle favorisierten Original-Bilder (ohne Wasserzeichen) einzeln herunter
+    document.getElementById('download-alle-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('download-alle-btn');
+      const favoritenDocs = [];
+      snapshot.forEach(docSnap => {
+        if (docSnap.data().favorit) favoritenDocs.push(docSnap.data());
+      });
+
+      if (favoritenDocs.length === 0) {
+        alert('Bitte markiere zuerst mindestens ein Bild mit ❤️.');
+        return;
+      }
+
+      btn.disabled = true;
+      for (let i = 0; i < favoritenDocs.length; i++) {
+        btn.textContent = `Lade herunter... (${i + 1}/${favoritenDocs.length})`;
+        const bild = favoritenDocs[i];
+        try {
+          const originalRef = ref(storage, `galerien/${galerieDocId}/original/${bild.dateiId}.jpg`);
+          const url = await getDownloadURL(originalRef);
+          const antwort = await fetch(url);
+          const blob = await antwort.blob();
+          const objektUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = objektUrl;
+          link.download = `Silvis-Photography-${i + 1}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(objektUrl);
+          await new Promise(resolve => setTimeout(resolve, 400)); // kurze Pause zwischen Downloads
+        } catch (err) {
+          console.error('Download fehlgeschlagen für ein Bild:', err);
+        }
+      }
+      btn.disabled = false;
+      btn.textContent = 'Ausgewählte Bilder herunterladen';
+    });
+
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
     let favoritenAnzahl = 0;
