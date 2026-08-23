@@ -3,40 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deine Galerie</title>
+<title>Deine Galerie — Silvis Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'Segoe UI', sans-serif; background: #FAFAF8; margin: 0; padding: 20px; color: #2B2A24; }
-  h1 { color: #5C6B4F; text-align: center; }
-  .login-box { max-width: 350px; margin: 100px auto; text-align: center; background: white; padding: 40px; border-radius: 8px; }
-  .login-box input { width: 100%; padding: 12px; margin-top: 16px; border: 1px solid #D9D2C2; border-radius: 4px; box-sizing: border-box; }
-  .login-box button { margin-top: 16px; padding: 12px 24px; background: #5C6B4F; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
-  .grid { display: none; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; max-width: 1200px; margin: 30px auto; }
-  .bild-wrap { position: relative; border-radius: 8px; overflow: hidden; }
-  .bild-wrap img { width: 100%; display: block; }
-  .herz { position: absolute; top: 10px; right: 10px; font-size: 28px; cursor: pointer; filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
-  .footer { display:none; text-align: center; margin-top: 40px; color: #6B6560; }
+  :root{
+    --sand:#f3ead9; --sand-deep:#e9dcc3; --moss:#5c6b4f; --moss-deep:#3f4a37;
+    --rose:#c98f76; --ink:#2b2a24; --line: rgba(43,42,36,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--sand); min-height:100vh; color:var(--ink); font-family:'Jost',sans-serif; font-weight:300; }
+  .logo{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:22px; color:var(--moss); text-align:center; padding:30px 0 10px; }
+
+  .login-box{ max-width:380px; margin:60px auto; text-align:center; background:white; padding:36px; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.05); }
+  .login-box h1{ font-family:'Fraunces',serif; font-weight:500; font-size:22px; margin-bottom:10px; }
+  .login-box p{ color:var(--moss-deep); font-size:14px; margin-bottom:16px; }
+  .login-box input{ width:100%; padding:12px; border:1px solid var(--line); border-radius:6px; font-family:'Jost',sans-serif; font-size:15px; box-sizing:border-box; }
+  .login-box button{ margin-top:14px; padding:12px 24px; background:var(--moss); color:white; border:none; border-radius:6px; cursor:pointer; width:100%; font-family:'Jost',sans-serif; font-size:15px; }
+  .login-box button:hover{ background:var(--moss-deep); }
+  #fehler{ color:#a3453b; font-size:13px; margin-top:10px; }
+
+  h1.titel{ font-family:'Fraunces',serif; font-weight:500; font-size:28px; text-align:center; display:none; margin-top:10px; }
+  .hinweis{ text-align:center; color:var(--moss-deep); font-size:14px; display:none; margin-top:6px; }
+
+  .grid{ display:none; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; max-width:1200px; margin:34px auto; padding:0 24px; }
+  .bild-wrap{ position:relative; border-radius:10px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+  .bild-wrap img{ width:100%; display:block; }
+  .herz{ position:absolute; top:12px; right:12px; font-size:26px; cursor:pointer; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.4)); transition:transform .15s; }
+  .herz:hover{ transform:scale(1.15); }
+
+  .footer{ display:none; text-align:center; margin:40px 0 60px; color:var(--moss-deep); font-size:14px; }
 </style>
 </head>
 <body>
+
+<div class="logo">Silvis Photography</div>
 
 <div class="login-box" id="login-box">
   <h1 id="galerie-titel-login">Galerie</h1>
   <p>Diese Galerie ist passwortgeschützt.</p>
   <input type="password" id="passwort-input" placeholder="Passwort">
   <button id="passwort-btn">Ansehen</button>
-  <p id="fehler" style="color:red;"></p>
+  <p id="fehler"></p>
 </div>
 
-<h1 id="galerie-titel" style="display:none;"></h1>
-<p style="text-align:center; color:#6B6560; display:none;" id="hinweis">Markiere deine Favoriten mit ❤️</p>
+<h1 class="titel" id="galerie-titel"></h1>
+<p class="hinweis" id="hinweis">Markiere deine Favoriten mit ❤️</p>
 <div class="grid" id="grid"></div>
-<div class="footer" id="footer">
-  <p id="anzahl">0 Bilder markiert</p>
-</div>
+<div class="footer" id="footer"><p id="anzahl">0 Bilder markiert</p></div>
 
 <script type="module">
   import { db } from "../firebase-config.js";
-  import { collection, getDocs, query, where, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('g');
@@ -53,7 +71,7 @@
     const q = query(collection(db, 'galerien'), where('slug', '==', slug));
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
-      document.body.innerHTML = '<p style="text-align:center; margin-top:100px;">Galerie nicht gefunden.</p>';
+      document.body.innerHTML = '<p style="text-align:center; margin-top:100px; font-family:Jost,sans-serif;">Galerie nicht gefunden.</p>';
       return;
     }
     const docSnap = snapshot.docs[0];
@@ -62,6 +80,56 @@
     document.getElementById('galerie-titel-login').textContent = galerie.titel;
 
     document.getElementById('passwort-btn').addEventListener('click', async () => {
+      const eingabe = document.getElementById('passwort-input').value;
+      const hash = await einfacherHash(eingabe);
+      if (hash === galerie.passwortHash) {
+        document.getElementById('login-box').style.display = 'none';
+        document.getElementById('galerie-titel').style.display = 'block';
+        document.getElementById('galerie-titel').textContent = galerie.titel;
+        document.getElementById('hinweis').style.display = 'block';
+        document.getElementById('grid').style.display = 'grid';
+        document.getElementById('footer').style.display = 'block';
+        bilderLaden();
+      } else {
+        document.getElementById('fehler').textContent = 'Falsches Passwort.';
+      }
+    });
+  }
+  galerieLaden();
+
+  async function bilderLaden() {
+    const snapshot = await getDocs(collection(db, 'galerien', galerieDocId, 'bilder'));
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    let favoritenAnzahl = 0;
+
+    snapshot.forEach(docSnap => {
+      const b = docSnap.data();
+      if (b.favorit) favoritenAnzahl++;
+      const div = document.createElement('div');
+      div.className = 'bild-wrap';
+      div.innerHTML = `<img src="${b.previewUrl}" alt=""><span class="herz" data-id="${docSnap.id}">${b.favorit ? '❤️' : '🤍'}</span>`;
+      grid.appendChild(div);
+    });
+
+    document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
+
+    document.querySelectorAll('.herz').forEach(herz => {
+      herz.addEventListener('click', async () => {
+        const bildId = herz.dataset.id;
+        const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
+        const aktuell = herz.textContent.trim() === '❤️';
+        await updateDoc(bildRef, { favorit: !aktuell });
+        herz.textContent = aktuell ? '🤍' : '❤️';
+        const anzahlEl = document.getElementById('anzahl');
+        let anzahl = parseInt(anzahlEl.textContent);
+        anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
+      });
+    });
+  }
+</script>
+</body>
+</html>
       const eingabe = document.getElementById('passwort-input').value;
       const hash = await einfacherHash(eingabe);
       if (hash === galerie.passwortHash) {
