@@ -25,7 +25,6 @@
   }
   ::selection{background:var(--rose); color:#fff;}
 
-  /* ---------------- Login ---------------- */
   .login-body{
     min-height:100vh;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -72,10 +71,8 @@
   .login-box button:hover{ background:var(--rose); }
   #fehler{ color:var(--error); font-size:13px; margin-top:12px; }
 
-  /* ---------------- Galerie-Ansicht ---------------- */
   .galerie-ansicht{ display:none; }
 
-  /* Hero / Titelbild */
   .hero{ position:relative; height:100vh; width:100%; overflow:hidden; display:none; }
   .hero img{ width:100%; height:100%; object-fit:cover; }
   .hero::after{
@@ -104,14 +101,12 @@
   .scroll-hint svg{ width:22px; height:22px; }
   @keyframes bob{ 0%,100%{transform:translate(-50%,0);} 50%{transform:translate(-50%,8px);} }
 
-  /* Ohne Titelbild: einfache Kopfzeile */
   .topbar{ text-align:center; padding:44px 20px 8px; }
   .topbar img{ height:52px; }
   .titel-zeile{ text-align:center; margin:18px 0 8px; }
   .titel-zeile h1{ font-family:'Cormorant Garamond', serif; font-weight:400; font-style:italic; font-size:32px; }
   .titel-zeile .kundenname{ color:var(--ink-soft); font-size:15px; display:block; margin-top:4px; }
 
-  /* Galerie-Bereich */
   .inhalt{ max-width:1400px; margin:0 auto; padding:90px 6vw 140px; }
   .hinweis{
     text-align:center; color:var(--ink-soft); font-size:15px;
@@ -131,7 +126,6 @@
   @media (max-width:900px){ .grid{ grid-template-columns:repeat(2,1fr); } }
   @media (max-width:560px){ .grid{ grid-template-columns:1fr; gap:14px; } .inhalt{ padding:70px 6vw 100px; } }
 
-  /* Auf Touch-Geräten gibt's kein Hover — Icons dauerhaft sichtbar, größere Tippfläche */
   @media (hover:none) and (pointer:coarse){
     .overlay-btn{ opacity:1; padding:6px; }
     .herz{ font-size:24px; }
@@ -170,7 +164,6 @@
   .fertig-bereich button:hover{ background:var(--rose); }
   .fertig-bereich p{ font-family:'Cormorant Garamond', serif; font-style:italic; font-size:17px; color:var(--ink); }
 
-  /* ---------------- Kontakt-Popup ---------------- */
   .contact-modal{
     position:fixed; inset:0; z-index:90;
     display:flex; align-items:center; justify-content:center;
@@ -188,7 +181,6 @@
   .contact-line a{ color:var(--ink); text-decoration:none; border-bottom:1px solid var(--rose); }
   .contact-close{ position:absolute; top:16px; right:18px; cursor:pointer; font-family:'EB Garamond', serif; font-size:22px; color:var(--ink-soft); background:none; border:none; }
 
-  /* Schwebender Hinweis-Button, solange Download freigegeben ist */
   .download-floating{
     position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
     z-index:55; display:none; align-items:center; gap:8px;
@@ -202,7 +194,6 @@
   .download-floating.sichtbar{ display:flex; }
   @media (max-width:700px){ .download-floating{ bottom:20px; padding:11px 18px; font-size:15px; } }
 
-  /* ---------------- Linkes Menü (Rail + Panel) ---------------- */
   .rail{ position:fixed; top:0; left:0; bottom:0; z-index:60; display:flex; align-items:center; pointer-events:none; }
   .rail-line{ position:relative; height:60vh; width:1px; background:var(--rose-line); margin-left:26px; pointer-events:auto; }
   .rail-icons{ position:absolute; top:50%; left:0; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:30px; }
@@ -263,7 +254,6 @@
     .panel{ width:82vw; max-width:300px; padding:0 24px; }
   }
 
-  /* ---------------- Lightbox ---------------- */
   .lightbox{ display:none; position:fixed; inset:0; background:rgba(20,19,15,0.94); z-index:100; align-items:center; justify-content:center; }
   .lightbox img{ max-width:90vw; max-height:85vh; }
   .lightbox-close{ position:absolute; top:22px; right:30px; color:#fff; font-size:34px; cursor:pointer; background:none; border:none; line-height:1; }
@@ -330,7 +320,6 @@
   </div>
 </div>
 
-<!-- ================= LINKES MENÜ ================= -->
 <div class="overlay-dim" id="overlayDim" onclick="closePanel()"></div>
 
 <div class="mobile-toggle" id="mobileToggle" onclick="togglePanel()" title="Menü öffnen">
@@ -429,11 +418,22 @@
 
     document.getElementById('passwort-btn').addEventListener('click', async () => {
       const eingabe = document.getElementById('passwort-input').value;
+
+      if (galerie.ablaufdatum) {
+        const ablauf = galerie.ablaufdatum.toDate ? galerie.ablaufdatum.toDate() : new Date(galerie.ablaufdatum);
+        if (ablauf.getTime() < Date.now()) {
+          document.getElementById('fehler').textContent = 'Diese Galerie ist leider nicht mehr verfügbar. Bitte melde dich bei Silvi.';
+          return;
+        }
+      }
+
       const hash = await einfacherHash(eingabe);
       if (hash === galerie.passwortHash) {
         document.getElementById('login-wrapper').style.display = 'none';
         document.getElementById('galerie-ansicht').style.display = 'block';
         document.getElementById('rail').style.display = 'block';
+
+        updateDoc(doc(db, 'galerien', galerieDocId), { zuletztAngesehenAm: serverTimestamp() }).catch(() => {});
 
         const begruessungText = galerie.kundeName
           ? `Hallo ${galerie.kundeName}! Schön, dass du da bist.`
@@ -660,7 +660,6 @@
     });
   }
 
-  // ---- Linkes Menü öffnen/schließen ----
   const panel = document.getElementById('panel');
   const overlayDim = document.getElementById('overlayDim');
   const toggleBtn = document.getElementById('toggleBtn');
