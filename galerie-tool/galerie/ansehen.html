@@ -170,6 +170,24 @@
   .fertig-bereich button:hover{ background:var(--rose); }
   .fertig-bereich p{ font-family:'Cormorant Garamond', serif; font-style:italic; font-size:17px; color:var(--ink); }
 
+  /* ---------------- Kontakt-Popup ---------------- */
+  .contact-modal{
+    position:fixed; inset:0; z-index:90;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(20,17,14,.4);
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
+  }
+  .contact-modal.open{ opacity:1; pointer-events:auto; }
+  .contact-box{
+    background:var(--panel); padding:46px 42px; max-width:360px; width:90%;
+    text-align:center; position:relative; border:1px solid var(--rose-line);
+  }
+  .contact-box h3{ font-family:'Cormorant Garamond', serif; font-weight:400; font-style:italic; font-size:28px; margin-bottom:6px; }
+  .contact-box p.sub{ color:var(--ink-soft); font-size:15px; margin-bottom:26px; }
+  .contact-line{ font-size:16px; margin-bottom:12px; }
+  .contact-line a{ color:var(--ink); text-decoration:none; border-bottom:1px solid var(--rose); }
+  .contact-close{ position:absolute; top:16px; right:18px; cursor:pointer; font-family:'EB Garamond', serif; font-size:22px; color:var(--ink-soft); background:none; border:none; }
+
   /* Schwebender Hinweis-Button, solange Download freigegeben ist */
   .download-floating{
     position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
@@ -329,6 +347,9 @@
       <div class="rail-icon" id="icon-favoriten" title="Nur Favoriten">
         <svg viewBox="0 0 24 24" stroke-width="1.3"><path d="M12 20s-7-4.4-9.3-9C1 7.2 3.4 4 6.8 4c1.9 0 3.4 1 5.2 3 1.8-2 3.3-3 5.2-3C20.6 4 23 7.2 21.3 11c-2.3 4.6-9.3 9-9.3 9z"/></svg>
       </div>
+      <div class="rail-icon" id="icon-kontakt" title="Kontakt" onclick="openContact()">
+        <svg viewBox="0 0 24 24" stroke-width="1.3"><rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="8.5" cy="11" r="1.6"/><path d="M6.5 15.5c.5-1.5 1.8-2.2 3-2.2s2.5.7 3 2.2M14 10h4M14 13.5h4"/></svg>
+      </div>
       <div class="rail-icon toggle" id="toggleBtn" title="Menü öffnen" onclick="togglePanel()">
         <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
       </div>
@@ -349,6 +370,10 @@
     <span class="label">Nur Favoriten</span>
     <svg class="chevron" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6"/></svg>
   </div>
+  <div class="menu-item" id="panel-kontakt" onclick="openContact(); closePanel();">
+    <span class="label">Kontakt</span>
+    <svg viewBox="0 0 24 24" stroke-width="1.3" fill="none"><rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="8.5" cy="11" r="1.6"/><path d="M6.5 15.5c.5-1.5 1.8-2.2 3-2.2s2.5.7 3 2.2M14 10h4M14 13.5h4"/></svg>
+  </div>
 </div>
 
 <div class="lightbox" id="lightbox">
@@ -361,6 +386,17 @@
 <div class="download-floating" id="downloadFloating" onclick="document.getElementById('download-bereich').scrollIntoView({behavior:'smooth', block:'center'})">
   <svg viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14"/></svg>
   <span>Download bereit</span>
+</div>
+
+<div class="contact-modal" id="contactModal">
+  <div class="contact-box">
+    <button class="contact-close" onclick="closeContact()">✕</button>
+    <h3>Kontakt</h3>
+    <p class="sub">Fragen zu deiner Galerie?</p>
+    <div class="contact-line">📧 <a href="mailto:kontakt@silvis-photography.com">kontakt@silvis-photography.com</a></div>
+    <div class="contact-line">📞 <a href="tel:+4915147669310">0151 47669310</a></div>
+    <div class="contact-line">📷 <a href="https://instagram.com/silvisphotogallery" target="_blank">@silvisphotogallery</a></div>
+  </div>
 </div>
 
 <script type="module">
@@ -644,6 +680,11 @@
     toggleBtn.classList.remove('open');
     mobileToggle.classList.remove('open');
   };
+
+  const contactModal = document.getElementById('contactModal');
+  window.openContact = function () { contactModal.classList.add('open'); };
+  window.closeContact = function () { contactModal.classList.remove('open'); };
+  contactModal.addEventListener('click', (e) => { if (e.target === contactModal) closeContact(); });
 </script>
 
 </body>
