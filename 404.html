@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Weiterleitung …</title>
+<style>
+  body{
+    font-family:'EB Garamond', Georgia, serif;
+    display:flex; align-items:center; justify-content:center;
+    height:100vh; margin:0; background:#FAF6F0; color:#2B2622;
+  }
+</style>
+</head>
+<body>
+  <p>Einen Moment, du wirst weitergeleitet …</p>
+
+<script>
+  // Diese Seite wird von GitHub Pages automatisch angezeigt, wenn eine URL
+  // nicht zu einer echten Datei passt — z.B. bei einem schönen Galerie-Link
+  // wie https://www.silvis-photography.com/galerie/dein-slug
+  //
+  // Sie schaut nach, ob die URL nach "galerie/" noch etwas enthält (den Slug)
+  // und leitet dann automatisch zur echten Galerie-Seite weiter.
+  //
+  // WICHTIG: Falls du bereits eine eigene 404.html für deine Haupt-Website
+  // hattest, müsst ihr die beiden zusammenführen (dieses Script einfach mit
+  // reinkopieren) statt diese Datei einfach zu überschreiben.
+
+  var teile = window.location.pathname.split('/').filter(Boolean);
+  var index = teile.indexOf('galerie');
+
+  if (index !== -1 && teile[index + 1]) {
+    var slug = decodeURIComponent(teile[index + 1]);
+    window.location.replace('/galerie-tool/galerie/ansehen.html?g=' + encodeURIComponent(slug));
+  }
+  // Wenn's kein Galerie-Link war: einfach nichts tun, die Meldung oben bleibt stehen.
+</script>
+</body>
+</html>
