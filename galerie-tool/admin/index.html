@@ -44,10 +44,15 @@
   .erfolg{ background:var(--sand-deep); border-left:3px solid var(--rose); padding:16px 18px; border-radius:4px; margin:20px 0; word-break:break-all; font-size:14px; }
   .erfolg a{ color:var(--moss); }
   .erfolg .mail-btn{
-    display:inline-block; margin-top:14px; padding:10px 20px; background:var(--moss); color:white;
-    border-radius:6px; text-decoration:none; font-size:14px; word-break:normal;
+    display:inline-block; margin-top:14px; margin-right:8px; padding:10px 20px; background:var(--moss); color:white;
+    border-radius:6px; text-decoration:none; font-size:14px; word-break:normal; border:none; cursor:pointer; font-family:'Jost',sans-serif;
   }
   .erfolg .mail-btn:hover{ background:var(--moss-deep); }
+  .erfolg .kopier-btn{
+    display:inline-block; margin-top:14px; padding:10px 20px; background:white; color:var(--moss);
+    border:1px solid var(--moss); border-radius:6px; cursor:pointer; font-size:14px; font-family:'Jost',sans-serif; word-break:normal;
+  }
+  .erfolg .kopier-btn:hover{ background:var(--sand-deep); }
   table{ width:100%; border-collapse:collapse; margin-top:10px; }
   th{ text-align:left; padding:10px 8px; font-size:13px; letter-spacing:0.03em; text-transform:uppercase; color:var(--moss-deep); border-bottom:1px solid var(--line); }
   td{ padding:12px 8px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top; }
@@ -147,10 +152,16 @@
   }
 
   function mailtoLink(link, passwort, kundeName, titel) {
+    return `mailto:?subject=${encodeURIComponent(mailBetreff(titel))}&body=${encodeURIComponent(mailText(link, passwort, kundeName))}`;
+  }
+
+  function mailBetreff(titel) {
+    return `Deine Fotogalerie ist bereit — ${titel}`;
+  }
+
+  function mailText(link, passwort, kundeName) {
     const anrede = kundeName ? `Hallo ${kundeName}` : 'Hallo';
-    const betreff = `Deine Fotogalerie ist bereit — ${titel}`;
-    const text =
-`${anrede},
+    return `${anrede},
 
 deine Fotos sind fertig! Hier geht's zu deiner Galerie:
 ${link}
@@ -161,8 +172,18 @@ Wähle einfach deine Lieblingsbilder mit dem Herz-Symbol aus.
 
 Liebe Grüße
 Silvi`;
-    return `mailto:?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(text)}`;
   }
+
+  window.textKopieren = async function (btn, text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      const alt = btn.textContent;
+      btn.textContent = '✓ Kopiert!';
+      setTimeout(() => { btn.textContent = alt; }, 1800);
+    } catch (e) {
+      alert('Kopieren hat nicht geklappt — bitte den Text manuell markieren.');
+    }
+  };
 
   document.getElementById('galerie-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -183,7 +204,11 @@ Silvi`;
     const box = document.getElementById('erfolg-box');
     box.style.display = 'block';
     box.innerHTML = `<strong>Galerie erstellt!</strong><br>Link: <a href="${link}">${link}</a><br>Passwort: ${passwort}<br>
-      <a class="mail-btn" href="${mailtoLink(link, passwort, kundeName, titel)}">📧 Per E-Mail senden</a>`;
+      <a class="mail-btn" href="${mailtoLink(link, passwort, kundeName, titel)}">📧 Per E-Mail senden</a>
+      <button type="button" class="kopier-btn" id="kopier-btn-erfolg">📋 Text kopieren</button>`;
+    document.getElementById('kopier-btn-erfolg').addEventListener('click', (e) => {
+      textKopieren(e.target, mailText(link, passwort, kundeName));
+    });
 
     document.getElementById('galerie-form').reset();
     galerienLaden();
@@ -242,10 +267,14 @@ Silvi`;
             <a href="${uploadLink}">Bilder hochladen</a>
             <a href="auswahl.html?g=${g.slug}">Auswahl ansehen</a>
             <a href="${mailLink}">📧 senden</a>
+            <button class="loeschen-btn kopier-link-btn" type="button">📋 Link kopieren</button>
             <button class="loeschen-btn" data-id="${galerieId}" data-titel="${g.titel}">löschen</button>
           </div>
         </td>
       `;
+      zeile.querySelector('.kopier-link-btn').addEventListener('click', (e) => {
+        textKopieren(e.target, ansehenLink);
+      });
       tabelle.appendChild(zeile);
     });
 
