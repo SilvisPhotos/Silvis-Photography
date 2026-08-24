@@ -85,6 +85,8 @@
   .aktionen{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
   .loeschen-btn{ color:#a3453b; cursor:pointer; background:none; border:none; padding:0; font-family:'Jost',sans-serif; font-size:13px; margin:0; text-decoration:underline; }
   .loeschen-btn:hover{ color:#7a332c; background:none; }
+  .aktion-btn{ color:var(--moss); cursor:pointer; background:none; border:none; padding:0; font-family:'Jost',sans-serif; font-size:13px; margin:0; text-decoration:underline; }
+  .aktion-btn:hover{ color:var(--moss-deep); background:none; }
   #login-box{ max-width:380px; margin:80px auto; text-align:center; }
   #login-box p{ color:var(--moss-deep); margin-bottom:20px; font-size:14px; }
   #login-fehler{ color:#a3453b; font-size:13px; margin-top:12px; }
@@ -332,9 +334,9 @@ Silvi`;
             <a href="${uploadLink}">Bilder hochladen</a>
             <a href="auswahl.html?g=${g.slug}">Auswahl ansehen</a>
             <a href="${mailLink}">📧 senden</a>
-            <button class="loeschen-btn kopier-link-btn" type="button">📋 Link kopieren</button>
-            <button class="loeschen-btn kopier-text-btn" type="button">📋 Text kopieren</button>
-            <button class="loeschen-btn qr-zeile-btn" type="button">🔳 QR-Code</button>
+            <button class="aktion-btn kopier-link-btn" type="button">📋 Link kopieren</button>
+            <button class="aktion-btn kopier-text-btn" type="button">📋 Text kopieren</button>
+            <button class="aktion-btn qr-zeile-btn" type="button">🔳 QR-Code</button>
             <button class="loeschen-btn" data-id="${galerieId}" data-titel="${g.titel}">löschen</button>
           </div>
         </td>
