@@ -116,6 +116,13 @@
 
     const fertigBox = document.getElementById('fertig-box');
     fertigBox.style.display = 'block';
+    let angesehenText = 'Galerie wurde noch nicht angesehen.';
+    if (galerie.zuletztAngesehenAm && galerie.zuletztAngesehenAm.toDate) {
+      const datum = galerie.zuletztAngesehenAm.toDate().toLocaleDateString('de-DE', {
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      angesehenText = `Zuletzt angesehen am ${datum}.`;
+    }
     if (galerie.auswahlAbgeschlossen === true) {
       let datumText = '';
       if (galerie.auswahlAbgeschlossenAm && galerie.auswahlAbgeschlossenAm.toDate) {
@@ -124,10 +131,10 @@
         });
       }
       fertigBox.className = 'fertig-box fertig';
-      fertigBox.innerHTML = `✅ Auswahl wurde${datumText ? ' am <strong>' + datumText + '</strong>' : ''} als <strong>fertig</strong> markiert.`;
+      fertigBox.innerHTML = `✅ Auswahl wurde${datumText ? ' am <strong>' + datumText + '</strong>' : ''} als <strong>fertig</strong> markiert.<br><span style="font-size:13px; color:var(--moss-deep);">${angesehenText}</span>`;
     } else {
       fertigBox.className = 'fertig-box offen';
-      fertigBox.innerHTML = `🕓 Auswahl wurde noch <strong>nicht</strong> als fertig markiert.`;
+      fertigBox.innerHTML = `🕓 Auswahl wurde noch <strong>nicht</strong> als fertig markiert.<br><span style="font-size:13px; color:var(--moss-deep);">${angesehenText}</span>`;
     }
 
     const bilderSnapshot = await getDocs(collection(db, 'galerien', galerieId, 'bilder'));
