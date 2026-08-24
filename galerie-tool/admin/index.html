@@ -53,6 +53,29 @@
     border:1px solid var(--moss); border-radius:6px; cursor:pointer; font-size:14px; font-family:'Jost',sans-serif; word-break:normal;
   }
   .erfolg .kopier-btn:hover{ background:var(--sand-deep); }
+  .qr-btn{
+    display:inline-block; margin-top:14px; padding:10px 20px; background:white; color:var(--moss);
+    border:1px solid var(--moss); border-radius:6px; cursor:pointer; font-size:14px; font-family:'Jost',sans-serif;
+  }
+  .qr-btn:hover{ background:var(--sand-deep); }
+  .badge{ display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; letter-spacing:0.02em; }
+  .badge.aktiv{ background:#e3ebe0; color:var(--moss-deep); }
+  .badge.abgelaufen{ background:#f4dedb; color:#a3453b; }
+  .meta-zeile{ font-size:12px; color:var(--moss-deep); margin-top:4px; }
+  .passwort-zeile{ font-size:12px; color:var(--moss-deep); margin-top:2px; }
+  .passwort-zeile button{ margin:0 0 0 4px; padding:0; background:none; color:var(--moss); border:none; font-size:12px; text-decoration:underline; cursor:pointer; }
+
+  .qr-modal{
+    display:none; position:fixed; inset:0; background:rgba(43,42,36,0.5);
+    align-items:center; justify-content:center; z-index:100;
+  }
+  .qr-modal.offen{ display:flex; }
+  .qr-modal-box{
+    background:white; border-radius:10px; padding:30px; text-align:center; max-width:300px;
+  }
+  .qr-modal-box img{ width:220px; height:220px; display:block; margin:0 auto 16px; }
+  .qr-modal-box a{ font-size:13px; color:var(--moss); }
+  .qr-modal-close{ margin-top:16px; background:var(--moss); color:white; border:none; border-radius:6px; padding:9px 20px; cursor:pointer; font-family:'Jost',sans-serif; }
   table{ width:100%; border-collapse:collapse; margin-top:10px; }
   th{ text-align:left; padding:10px 8px; font-size:13px; letter-spacing:0.03em; text-transform:uppercase; color:var(--moss-deep); border-bottom:1px solid var(--line); }
   td{ padding:12px 8px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top; }
@@ -98,6 +121,9 @@
       <label>Galerie-Passwort</label>
       <input type="text" id="galerie-passwort" placeholder="z.B. Beni2026" required>
 
+      <label>Ablaufdatum (optional)</label>
+      <input type="date" id="ablauf-datum">
+
       <button type="submit">Galerie anlegen</button>
     </form>
   </div>
@@ -106,6 +132,15 @@
   <table id="galerien-liste">
     <tr><th>Titel</th><th>Kunde</th><th>Link</th></tr>
   </table>
+</div>
+
+<div class="qr-modal" id="qr-modal">
+  <div class="qr-modal-box">
+    <img id="qr-modal-img" src="" alt="QR-Code">
+    <a id="qr-modal-download" href="" download="galerie-qr-code.png">Als Bild herunterladen</a>
+    <br>
+    <button class="qr-modal-close" onclick="document.getElementById('qr-modal').classList.remove('offen')">Schließen</button>
+  </div>
 </div>
 
 <script type="module">
@@ -185,30 +220,54 @@ Silvi`;
     }
   };
 
+  window.qrAnzeigen = function (link) {
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(link)}`;
+    document.getElementById('qr-modal-img').src = qrUrl;
+    document.getElementById('qr-modal-download').href = qrUrl;
+    document.getElementById('qr-modal').classList.add('offen');
+  };
+
+  function datumFormatieren(datumWert) {
+    if (!datumWert) return '';
+    const datum = datumWert.toDate ? datumWert.toDate() : new Date(datumWert);
+    return datum.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function ablaufStatus(ablaufdatum) {
+    if (!ablaufdatum) return '<span class="meta-zeile">Kein Ablaufdatum</span>';
+    const datum = ablaufdatum.toDate ? ablaufdatum.toDate() : new Date(ablaufdatum);
+    const abgelaufen = datum.getTime() < Date.now();
+    return `<span class="badge ${abgelaufen ? 'abgelaufen' : 'aktiv'}">${abgelaufen ? 'abgelaufen' : 'läuft bis'} ${datumFormatieren(ablaufdatum)}</span>`;
+  }
+
   document.getElementById('galerie-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const titel = document.getElementById('titel').value;
     const kundeName = document.getElementById('kunde-name').value;
     const passwort = document.getElementById('galerie-passwort').value;
+    const ablaufWert = document.getElementById('ablauf-datum').value;
     const slug = slugErstellen(titel);
     const passwortHash = await einfacherHash(passwort);
 
     await addDoc(collection(db, 'galerien'), {
       slug, titel, kundeName, passwortHash,
+      passwortKlartext: passwort,
+      ablaufdatum: ablaufWert ? new Date(ablaufWert) : null,
       downloadFreigegeben: false,
       erstelltAm: serverTimestamp()
     });
 
-    const basisPfad = window.location.pathname.substring(0, window.location.pathname.indexOf('admin/'));
     const link = schoenerLink(slug);
     const box = document.getElementById('erfolg-box');
     box.style.display = 'block';
     box.innerHTML = `<strong>Galerie erstellt!</strong><br>Link: <a href="${link}">${link}</a><br>Passwort: ${passwort}<br>
       <a class="mail-btn" href="${mailtoLink(link, passwort, kundeName, titel)}">📧 Per E-Mail senden</a>
-      <button type="button" class="kopier-btn" id="kopier-btn-erfolg">📋 Text kopieren</button>`;
+      <button type="button" class="kopier-btn" id="kopier-btn-erfolg">📋 Text kopieren</button>
+      <button type="button" class="qr-btn" id="qr-btn-erfolg">🔳 QR-Code</button>`;
     document.getElementById('kopier-btn-erfolg').addEventListener('click', (e) => {
       textKopieren(e.target, mailText(link, passwort, kundeName));
     });
+    document.getElementById('qr-btn-erfolg').addEventListener('click', () => qrAnzeigen(link));
 
     document.getElementById('galerie-form').reset();
     galerienLaden();
@@ -217,13 +276,11 @@ Silvi`;
   async function galerieLoeschen(galerieId, titel) {
     if (!confirm(`Galerie "${titel}" wirklich komplett löschen? Das kann nicht rückgängig gemacht werden.`)) return;
 
-    // 1. Alle Bilder-Einträge in der Unterkollektion löschen
     const bilderSnapshot = await getDocs(collection(db, 'galerien', galerieId, 'bilder'));
     for (const bildDoc of bilderSnapshot.docs) {
       await deleteDoc(bildDoc.ref);
     }
 
-    // 2. Dateien im Storage löschen (Original + Vorschau)
     for (const ordner of ['original', 'preview']) {
       try {
         const ordnerRef = ref(storage, `galerien/${galerieId}/${ordner}`);
@@ -234,7 +291,6 @@ Silvi`;
       } catch (e) { /* Ordner existiert evtl. nicht, kein Problem */ }
     }
 
-    // 3. Galerie-Dokument selbst löschen
     await deleteDoc(doc(db, 'galerien', galerieId));
 
     galerienLaden();
@@ -249,10 +305,13 @@ Silvi`;
     snapshot.forEach(docSnap => {
       const g = docSnap.data();
       const galerieId = docSnap.id;
-      const basisPfad = window.location.pathname.substring(0, window.location.pathname.indexOf('admin/'));
       const ansehenLink = schoenerLink(g.slug);
       const uploadLink = `upload.html?g=${g.slug}`;
-      const mailLink = mailtoLink(ansehenLink, '(dein Passwort — siehe deine Notizen)', g.kundeName, g.titel);
+      const echtesPasswort = g.passwortKlartext || null;
+      const mailLink = mailtoLink(ansehenLink, echtesPasswort || '(kein Passwort gespeichert)', g.kundeName, g.titel);
+      const zuletztAngesehenText = g.zuletztAngesehenAm
+        ? `Zuletzt angesehen: ${datumFormatieren(g.zuletztAngesehenAm)}`
+        : 'Noch nicht angesehen';
 
       const zeile = document.createElement('tr');
       zeile.innerHTML = `
@@ -260,6 +319,12 @@ Silvi`;
         <td>${g.kundeName || ''}</td>
         <td>
           <div class="link-text">${ansehenLink}</div>
+          <div class="passwort-zeile">
+            Passwort: <span class="pw-versteckt">••••••</span><span class="pw-klartext" style="display:none;">${echtesPasswort || 'nicht gespeichert'}</span>
+            ${echtesPasswort ? '<button type="button" class="pw-toggle">anzeigen</button>' : ''}
+          </div>
+          <div class="meta-zeile">${ablaufStatus(g.ablaufdatum)}</div>
+          <div class="meta-zeile">${zuletztAngesehenText}</div>
         </td>
         <td>
           <div class="aktionen">
@@ -269,6 +334,7 @@ Silvi`;
             <a href="${mailLink}">📧 senden</a>
             <button class="loeschen-btn kopier-link-btn" type="button">📋 Link kopieren</button>
             <button class="loeschen-btn kopier-text-btn" type="button">📋 Text kopieren</button>
+            <button class="loeschen-btn qr-zeile-btn" type="button">🔳 QR-Code</button>
             <button class="loeschen-btn" data-id="${galerieId}" data-titel="${g.titel}">löschen</button>
           </div>
         </td>
@@ -277,8 +343,20 @@ Silvi`;
         textKopieren(e.target, ansehenLink);
       });
       zeile.querySelector('.kopier-text-btn').addEventListener('click', (e) => {
-        textKopieren(e.target, mailText(ansehenLink, '(dein Passwort — siehe deine Notizen)', g.kundeName));
+        textKopieren(e.target, mailText(ansehenLink, echtesPasswort || '(kein Passwort gespeichert)', g.kundeName));
       });
+      zeile.querySelector('.qr-zeile-btn').addEventListener('click', () => qrAnzeigen(ansehenLink));
+      const pwToggle = zeile.querySelector('.pw-toggle');
+      if (pwToggle) {
+        pwToggle.addEventListener('click', () => {
+          const versteckt = zeile.querySelector('.pw-versteckt');
+          const klartext = zeile.querySelector('.pw-klartext');
+          const zeigen = klartext.style.display === 'none';
+          klartext.style.display = zeigen ? 'inline' : 'none';
+          versteckt.style.display = zeigen ? 'none' : 'inline';
+          pwToggle.textContent = zeigen ? 'verbergen' : 'anzeigen';
+        });
+      }
       tabelle.appendChild(zeile);
     });
 
