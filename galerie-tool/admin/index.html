@@ -43,6 +43,230 @@
   .card{ background:white; border-radius:10px; padding:32px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
   .erfolg{ background:var(--sand-deep); border-left:3px solid var(--rose); padding:16px 18px; border-radius:4px; margin:20px 0; word-break:break-all; font-size:14px; }
   .erfolg a{ color:var(--moss); }
+  .erfolg .mail-btn{
+    display:inline-block; margin-top:14px; padding:10px 20px; background:var(--moss); color:white;
+    border-radius:6px; text-decoration:none; font-size:14px; word-break:normal;
+  }
+  .erfolg .mail-btn:hover{ background:var(--moss-deep); }
+  table{ width:100%; border-collapse:collapse; margin-top:10px; }
+  th{ text-align:left; padding:10px 8px; font-size:13px; letter-spacing:0.03em; text-transform:uppercase; color:var(--moss-deep); border-bottom:1px solid var(--line); }
+  td{ padding:12px 8px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top; }
+  td a{ color:var(--moss); text-decoration:none; }
+  td a:hover{ text-decoration:underline; }
+  .link-text{ font-size:11px; color:var(--moss-deep); word-break:break-all; margin-top:4px; }
+  .aktionen{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .loeschen-btn{ color:#a3453b; cursor:pointer; background:none; border:none; padding:0; font-family:'Jost',sans-serif; font-size:13px; margin:0; text-decoration:underline; }
+  .loeschen-btn:hover{ color:#7a332c; background:none; }
+  #login-box{ max-width:380px; margin:80px auto; text-align:center; }
+  #login-box p{ color:var(--moss-deep); margin-bottom:20px; font-size:14px; }
+  #login-fehler{ color:#a3453b; font-size:13px; margin-top:12px; }
+</style>
+</head>
+<body>
+
+<div class="logo"><img src="../../images/logo.png" alt="Silvis Photography"></div>
+
+<div id="login-box" class="wrap">
+  <div class="card">
+    <h1 style="text-align:center;">Admin-Login</h1>
+    <p>Nur für dich — trag deine E-Mail und dein Passwort ein.</p>
+    <input type="email" id="login-email" placeholder="E-Mail">
+    <input type="password" id="login-passwort" placeholder="Passwort" style="margin-top:12px;">
+    <button id="login-btn" style="width:100%;">Login</button>
+    <p id="login-fehler"></p>
+  </div>
+</div>
+
+<div id="admin-bereich" class="wrap" style="display:none;">
+  <h1>Neue Galerie erstellen</h1>
+
+  <div id="erfolg-box" class="erfolg" style="display:none;"></div>
+
+  <div class="card">
+    <form id="galerie-form">
+      <label>Titel der Galerie</label>
+      <input type="text" id="titel" placeholder="z.B. Benis Hochzeit" required>
+
+      <label>Kundenname</label>
+      <input type="text" id="kunde-name" placeholder="z.B. Beni">
+
+      <label>Galerie-Passwort</label>
+      <input type="text" id="galerie-passwort" placeholder="z.B. Beni2026" required>
+
+      <button type="submit">Galerie anlegen</button>
+    </form>
+  </div>
+
+  <h2>Bestehende Galerien</h2>
+  <table id="galerien-liste">
+    <tr><th>Titel</th><th>Kunde</th><th>Link</th></tr>
+  </table>
+</div>
+
+<script type="module">
+  import { auth, db, storage } from "../firebase-config.js";
+  import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  import { collection, addDoc, getDocs, getDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { ref, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value;
+    const passwort = document.getElementById('login-passwort').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, passwort);
+    } catch (err) {
+      document.getElementById('login-fehler').textContent = 'Login fehlgeschlagen: ' + err.message;
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('admin-bereich').style.display = 'block';
+      galerienLaden();
+    }
+  });
+
+  async function einfacherHash(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function slugErstellen(titel) {
+    const basis = titel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const zufall = Math.random().toString(36).substring(2, 6);
+    return `${basis}-${zufall}`;
+  }
+
+  // Schöner Link fürs Verschicken — landet über die 404.html-Weiterleitung
+  // automatisch bei der echten Galerie-Seite
+  function schoenerLink(slug) {
+    return `${window.location.origin}/galerie/${slug}`;
+  }
+
+  function mailtoLink(link, passwort, kundeName, titel) {
+    const anrede = kundeName ? `Hallo ${kundeName}` : 'Hallo';
+    const betreff = `Deine Fotogalerie ist bereit — ${titel}`;
+    const text =
+`${anrede},
+
+deine Fotos sind fertig! Hier geht's zu deiner Galerie:
+${link}
+
+Passwort: ${passwort}
+
+Wähle einfach deine Lieblingsbilder mit dem Herz-Symbol aus.
+
+Liebe Grüße
+Silvi`;
+    return `mailto:?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(text)}`;
+  }
+
+  document.getElementById('galerie-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titel = document.getElementById('titel').value;
+    const kundeName = document.getElementById('kunde-name').value;
+    const passwort = document.getElementById('galerie-passwort').value;
+    const slug = slugErstellen(titel);
+    const passwortHash = await einfacherHash(passwort);
+
+    await addDoc(collection(db, 'galerien'), {
+      slug, titel, kundeName, passwortHash,
+      downloadFreigegeben: false,
+      erstelltAm: serverTimestamp()
+    });
+
+    const basisPfad = window.location.pathname.substring(0, window.location.pathname.indexOf('admin/'));
+    const link = schoenerLink(slug);
+    const box = document.getElementById('erfolg-box');
+    box.style.display = 'block';
+    box.innerHTML = `<strong>Galerie erstellt!</strong><br>Link: <a href="${link}">${link}</a><br>Passwort: ${passwort}<br>
+      <a class="mail-btn" href="${mailtoLink(link, passwort, kundeName, titel)}">📧 Per E-Mail senden</a>`;
+
+    document.getElementById('galerie-form').reset();
+    galerienLaden();
+  });
+
+  async function galerieLoeschen(galerieId, titel) {
+    if (!confirm(`Galerie "${titel}" wirklich komplett löschen? Das kann nicht rückgängig gemacht werden.`)) return;
+
+    // 1. Alle Bilder-Einträge in der Unterkollektion löschen
+    const bilderSnapshot = await getDocs(collection(db, 'galerien', galerieId, 'bilder'));
+    for (const bildDoc of bilderSnapshot.docs) {
+      await deleteDoc(bildDoc.ref);
+    }
+
+    // 2. Dateien im Storage löschen (Original + Vorschau)
+    for (const ordner of ['original', 'preview']) {
+      try {
+        const ordnerRef = ref(storage, `galerien/${galerieId}/${ordner}`);
+        const liste = await listAll(ordnerRef);
+        for (const item of liste.items) {
+          await deleteObject(item);
+        }
+      } catch (e) { /* Ordner existiert evtl. nicht, kein Problem */ }
+    }
+
+    // 3. Galerie-Dokument selbst löschen
+    await deleteDoc(doc(db, 'galerien', galerieId));
+
+    galerienLaden();
+  }
+  window.galerieLoeschen = galerieLoeschen;
+
+  async function galerienLaden() {
+    const q = query(collection(db, 'galerien'), orderBy('erstelltAm', 'desc'));
+    const snapshot = await getDocs(q);
+    const tabelle = document.getElementById('galerien-liste');
+    tabelle.innerHTML = '<tr><th>Titel</th><th>Kunde</th><th>Links</th><th>Aktionen</th></tr>';
+    snapshot.forEach(docSnap => {
+      const g = docSnap.data();
+      const galerieId = docSnap.id;
+      const basisPfad = window.location.pathname.substring(0, window.location.pathname.indexOf('admin/'));
+      const ansehenLink = schoenerLink(g.slug);
+      const uploadLink = `upload.html?g=${g.slug}`;
+      const mailLink = mailtoLink(ansehenLink, '(dein Passwort — siehe deine Notizen)', g.kundeName, g.titel);
+
+      const zeile = document.createElement('tr');
+      zeile.innerHTML = `
+        <td>${g.titel}</td>
+        <td>${g.kundeName || ''}</td>
+        <td>
+          <div class="link-text">${ansehenLink}</div>
+        </td>
+        <td>
+          <div class="aktionen">
+            <a href="${ansehenLink}" target="_blank">ansehen</a>
+            <a href="${uploadLink}">Bilder hochladen</a>
+            <a href="auswahl.html?g=${g.slug}">Auswahl ansehen</a>
+            <a href="${mailLink}">📧 senden</a>
+            <button class="loeschen-btn" data-id="${galerieId}" data-titel="${g.titel}">löschen</button>
+          </div>
+        </td>
+      `;
+      tabelle.appendChild(zeile);
+    });
+
+    document.querySelectorAll('.loeschen-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        galerieLoeschen(btn.dataset.id, btn.dataset.titel);
+      });
+    });
+  }
+</script>
+</body>
+</html>
+  h2{ font-family:'Fraunces', serif; font-weight:500; font-size:20px; color:var(--moss); margin:36px 0 14px; }
+  label{ display:block; margin-top:16px; font-size:14px; letter-spacing:0.02em; color:var(--moss-deep); }
+  input{ width:100%; padding:12px; margin-top:6px; border:1px solid var(--line); border-radius:6px; background:white; font-family:'Jost',sans-serif; font-size:15px; box-sizing:border-box; }
+  input:focus{ outline:none; border-color:var(--moss); }
+  button{ margin-top:24px; padding:13px 28px; background:var(--moss); color:white; border:none; border-radius:6px; cursor:pointer; font-family:'Jost',sans-serif; font-size:15px; letter-spacing:0.02em; transition:background .2s; }
+  button:hover{ background:var(--moss-deep); }
+  .card{ background:white; border-radius:10px; padding:32px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
+  .erfolg{ background:var(--sand-deep); border-left:3px solid var(--rose); padding:16px 18px; border-radius:4px; margin:20px 0; word-break:break-all; font-size:14px; }
+  .erfolg a{ color:var(--moss); }
   table{ width:100%; border-collapse:collapse; margin-top:10px; }
   th{ text-align:left; padding:10px 8px; font-size:13px; letter-spacing:0.03em; text-transform:uppercase; color:var(--moss-deep); border-bottom:1px solid var(--line); }
   td{ padding:12px 8px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top; }
