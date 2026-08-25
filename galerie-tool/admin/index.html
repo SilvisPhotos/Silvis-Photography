@@ -90,11 +90,15 @@
   #login-box{ max-width:380px; margin:80px auto; text-align:center; }
   #login-box p{ color:var(--moss-deep); margin-bottom:20px; font-size:14px; }
   #login-fehler{ color:#a3453b; font-size:13px; margin-top:12px; }
+  .admin-nav{ text-align:center; padding:14px 0 0; font-size:13px; }
+  .admin-nav a{ color:var(--moss-deep); text-decoration:none; }
+  .admin-nav a:hover{ text-decoration:underline; }
 </style>
 </head>
 <body>
 
 <div class="logo"><img src="../../images/logo.png" alt="Silvis Photography"></div>
+<div class="admin-nav"><a href="landschaften-admin.html">Zur Shop-Verwaltung →</a></div>
 
 <div id="login-box" class="wrap">
   <div class="card">
@@ -278,11 +282,13 @@ Silvi`;
   async function galerieLoeschen(galerieId, titel) {
     if (!confirm(`Galerie "${titel}" wirklich komplett löschen? Das kann nicht rückgängig gemacht werden.`)) return;
 
+    // 1. Alle Bilder-Einträge in der Unterkollektion löschen
     const bilderSnapshot = await getDocs(collection(db, 'galerien', galerieId, 'bilder'));
     for (const bildDoc of bilderSnapshot.docs) {
       await deleteDoc(bildDoc.ref);
     }
 
+    // 2. Dateien im Storage löschen (Original + Vorschau)
     for (const ordner of ['original', 'preview']) {
       try {
         const ordnerRef = ref(storage, `galerien/${galerieId}/${ordner}`);
@@ -293,6 +299,7 @@ Silvi`;
       } catch (e) { /* Ordner existiert evtl. nicht, kein Problem */ }
     }
 
+    // 3. Galerie-Dokument selbst löschen
     await deleteDoc(doc(db, 'galerien', galerieId));
 
     galerienLaden();
@@ -307,6 +314,7 @@ Silvi`;
     snapshot.forEach(docSnap => {
       const g = docSnap.data();
       const galerieId = docSnap.id;
+      const basisPfad = window.location.pathname.substring(0, window.location.pathname.indexOf('admin/'));
       const ansehenLink = schoenerLink(g.slug);
       const uploadLink = `upload.html?g=${g.slug}`;
       const echtesPasswort = g.passwortKlartext || null;
