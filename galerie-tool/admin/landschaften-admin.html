@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Landschaftsfotos verwalten — Silvis Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sand:#f3ead9; --sand-deep:#e9dcc3; --moss:#5c6b4f; --moss-deep:#3f4a37;
+    --rose:#c98f76; --ink:#2b2a24; --line: rgba(43,42,36,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      linear-gradient(rgba(243,234,217,0.75), rgba(243,234,217,0.75)),
+      url('../../images/bg-texture.jpg');
+    background-size:cover; background-position:top center; background-repeat:repeat-y;
+    min-height:100vh; color:var(--ink); font-family:'Jost',sans-serif; font-weight:300; line-height:1.6;
+  }
+  .logo{ text-align:center; padding:30px 0 10px; }
+  .logo img{ height:60px; }
+  .wrap{ max-width:800px; margin:0 auto; padding:0 24px 60px; }
+  h1{ font-family:'Fraunces', serif; font-weight:500; font-size:28px; margin-bottom:24px; }
+  h2{ font-family:'Fraunces', serif; font-weight:500; font-size:20px; color:var(--moss); margin:36px 0 14px; }
+  label{ display:block; margin-top:16px; font-size:14px; color:var(--moss-deep); }
+  input{ width:100%; padding:12px; margin-top:6px; border:1px solid var(--line); border-radius:6px; background:white; font-family:'Jost',sans-serif; font-size:15px; box-sizing:border-box; }
+  input:focus{ outline:none; border-color:var(--moss); }
+  button{ margin-top:20px; padding:13px 28px; background:var(--moss); color:white; border:none; border-radius:6px; cursor:pointer; font-family:'Jost',sans-serif; font-size:15px; }
+  button:hover{ background:var(--moss-deep); }
+  .card{ background:white; border-radius:10px; padding:28px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
+  .hinweis{ font-size:13px; color:var(--moss-deep); margin-top:6px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; margin-top:14px; }
+  .foto-box{ background:white; border-radius:8px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+  .foto-box img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; }
+  .foto-info{ padding:10px 12px; }
+  .foto-info .titel{ font-size:14px; font-weight:500; }
+  .foto-info .preis{ font-size:13px; color:var(--moss); margin-top:2px; }
+  .loeschen-link{ display:inline-block; margin-top:8px; color:#a3453b; font-size:12px; text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; font-family:'Jost',sans-serif; }
+  #login-box{ max-width:380px; margin:80px auto; text-align:center; }
+  #login-box p{ color:var(--moss-deep); margin-bottom:20px; font-size:14px; }
+  #login-fehler{ color:#a3453b; font-size:13px; margin-top:12px; }
+  #status{ font-size:14px; color:var(--moss-deep); margin-top:14px; }
+</style>
+</head>
+<body>
+
+<div class="logo"><img src="../../images/logo.png" alt="Silvis Photography"></div>
+
+<div id="login-box" class="wrap">
+  <div class="card">
+    <h1 style="text-align:center;">Admin-Login</h1>
+    <p>Nur für dich — trag deine E-Mail und dein Passwort ein.</p>
+    <input type="email" id="login-email" placeholder="E-Mail">
+    <input type="password" id="login-passwort" placeholder="Passwort" style="margin-top:12px;">
+    <button id="login-btn" style="width:100%;">Login</button>
+    <p id="login-fehler"></p>
+  </div>
+</div>
+
+<div id="admin-bereich" class="wrap" style="display:none;">
+  <h1>Landschaftsfotos verwalten</h1>
+
+  <div class="card">
+    <form id="foto-form">
+      <label>Titel</label>
+      <input type="text" id="titel" placeholder="z.B. Sonnenuntergang am Neckar" required>
+
+      <label>Preis (€)</label>
+      <input type="number" id="preis" placeholder="z.B. 25" min="0" step="0.5" required>
+
+      <label>Bild</label>
+      <input type="file" id="datei" accept="image/jpeg,image/png" required>
+      <p class="hinweis">Wasserzeichen wird automatisch aufs Vorschaubild gesetzt.</p>
+
+      <button type="submit">Foto hinzufügen</button>
+    </form>
+    <p id="status"></p>
+  </div>
+
+  <h2>Bereits eingestellt</h2>
+  <div class="grid" id="foto-grid"></div>
+</div>
+
+<canvas id="wz-canvas" style="display:none;"></canvas>
+
+<script type="module">
+  import { auth, db, storage } from "../firebase-config.js";
+  import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value;
+    const passwort = document.getElementById('login-passwort').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, passwort);
+    } catch (err) {
+      document.getElementById('login-fehler').textContent = 'Login fehlgeschlagen: ' + err.message;
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('admin-bereich').style.display = 'block';
+      fotosLaden();
+    }
+  });
+
+  // Logo einmalig laden, fürs Wasserzeichen
+  let logoBild = null;
+  function logoLaden() {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => { logoBild = img; resolve(img); };
+      img.onerror = () => { logoBild = null; resolve(null); };
+      img.src = '../../images/logo.png';
+    });
+  }
+  const logoPromise = logoLaden();
+
+  function bildLaden(datei) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.src = URL.createObjectURL(datei);
+    });
+  }
+
+  function wasserzeichenErstellen(bild) {
+    return new Promise(async (resolve) => {
+      await logoPromise;
+      const canvas = document.getElementById('wz-canvas');
+      const MAX_GROESSE = 1600;
+      let breite = bild.width;
+      let hoehe = bild.height;
+      if (breite > hoehe && breite > MAX_GROESSE) {
+        hoehe = Math.round(hoehe * (MAX_GROESSE / breite));
+        breite = MAX_GROESSE;
+      } else if (hoehe > MAX_GROESSE) {
+        breite = Math.round(breite * (MAX_GROESSE / hoehe));
+        hoehe = MAX_GROESSE;
+      }
+      canvas.width = breite; canvas.height = hoehe;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bild, 0, 0, breite, hoehe);
+
+      if (logoBild) {
+        const logoBreite = breite * 0.5;
+        const logoHoehe = logoBreite * (logoBild.height / logoBild.width);
+        const x = (breite - logoBreite) / 2;
+        const y = (hoehe - logoHoehe) / 2;
+        ctx.globalAlpha = 0.4;
+        ctx.drawImage(logoBild, x, y, logoBreite, logoHoehe);
+        ctx.globalAlpha = 1;
+      }
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+    });
+  }
+
+  document.getElementById('foto-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titel = document.getElementById('titel').value;
+    const preis = parseFloat(document.getElementById('preis').value);
+    const datei = document.getElementById('datei').files[0];
+    const status = document.getElementById('status');
+    if (!datei) return;
+
+    status.textContent = 'Lade hoch...';
+    const bild = await bildLaden(datei);
+    const wzBlob = await wasserzeichenErstellen(bild);
+    const dateiId = crypto.randomUUID();
+
+    // Vorschaubild MIT Wasserzeichen — wird öffentlich auf der Shop-Seite gezeigt
+    const previewRef = ref(storage, `landschaften/${dateiId}.jpg`);
+    await uploadBytes(previewRef, wzBlob);
+    const bildUrl = await getDownloadURL(previewRef);
+
+    // Original OHNE Wasserzeichen — wird erst nach Bezahlung über die Cloud
+    // Function freigegeben, landet in einem eigenen, nicht öffentlichen Ordner
+    const originalRef = ref(storage, `landschaften-original/${dateiId}.jpg`);
+    await uploadBytes(originalRef, datei);
+
+    await addDoc(collection(db, 'landschaftsfotos'), {
+      titel, preis, bildUrl, dateiId,
+      erstelltAm: serverTimestamp()
+    });
+
+    status.textContent = 'Foto hinzugefügt!';
+    document.getElementById('foto-form').reset();
+    fotosLaden();
+    setTimeout(() => { status.textContent = ''; }, 2500);
+  });
+
+  async function fotoLoeschen(fotoId, dateiId, titel) {
+    if (!confirm(`"${titel}" wirklich löschen?`)) return;
+    try {
+      await deleteObject(ref(storage, `landschaften/${dateiId}.jpg`));
+    } catch (e) { /* Datei evtl. schon weg */ }
+    try {
+      await deleteObject(ref(storage, `landschaften-original/${dateiId}.jpg`));
+    } catch (e) { /* Datei evtl. schon weg */ }
+    await deleteDoc(doc(db, 'landschaftsfotos', fotoId));
+    fotosLaden();
+  }
+  window.fotoLoeschen = fotoLoeschen;
+
+  async function fotosLaden() {
+    const q = query(collection(db, 'landschaftsfotos'), orderBy('erstelltAm', 'desc'));
+    const snapshot = await getDocs(q);
+    const grid = document.getElementById('foto-grid');
+    grid.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const f = docSnap.data();
+      const box = document.createElement('div');
+      box.className = 'foto-box';
+      box.innerHTML = `
+        <img src="${f.bildUrl}" alt="${f.titel}">
+        <div class="foto-info">
+          <div class="titel">${f.titel}</div>
+          <div class="preis">${f.preis.toFixed(2)} €</div>
+          <button class="loeschen-link" data-id="${docSnap.id}" data-datei="${f.dateiId}" data-titel="${f.titel}">löschen</button>
+        </div>
+      `;
+      grid.appendChild(box);
+    });
+    document.querySelectorAll('.loeschen-link').forEach(btn => {
+      btn.addEventListener('click', () => {
+        fotoLoeschen(btn.dataset.id, btn.dataset.datei, btn.dataset.titel);
+      });
+    });
+  }
+</script>
+</body>
+</html>
