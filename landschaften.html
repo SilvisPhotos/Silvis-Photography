@@ -26,6 +26,7 @@
   .karte img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; }
   .karte-info{ padding:18px 20px 22px; text-align:center; }
   .karte-info .titel{ font-family:'Cormorant Garamond', serif; font-style:italic; font-size:20px; }
+  .karte-info .beschreibung{ margin-top:6px; font-size:14px; color:var(--ink-soft); }
   .karte-info .preis{ margin-top:6px; font-size:17px; color:var(--rose); }
   .karte-info button{
     margin-top:14px; padding:11px 26px; background:var(--ink); color:var(--cream); border:none; cursor:pointer;
@@ -120,6 +121,7 @@ Liebe Grüße`;
           <img src="${f.bildUrl}" alt="${f.titel}">
           <div class="karte-info">
             <div class="titel">${f.titel}</div>
+            ${f.beschreibung ? `<div class="beschreibung">${f.beschreibung}</div>` : ''}
             <div class="preis">${f.preis.toFixed(2)} €</div>
             <button type="button" class="kaufen-btn" data-id="${docSnap.id}">Kaufen</button>
           </div>
