@@ -38,6 +38,15 @@
   .foto-info .titel{ font-size:14px; font-weight:500; }
   .foto-info .preis{ font-size:13px; color:var(--moss); margin-top:2px; }
   .loeschen-link{ display:inline-block; margin-top:8px; color:#a3453b; font-size:12px; text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; font-family:'Jost',sans-serif; }
+  .bearbeiten-link{ display:inline-block; margin-top:8px; margin-right:10px; color:var(--moss); font-size:12px; text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; font-family:'Jost',sans-serif; }
+  .foto-info .beschreibung{ font-size:12px; color:var(--moss-deep); margin-top:4px; }
+  .edit-form{ padding:10px 12px 14px; border-top:1px solid var(--line); }
+  .edit-form input, .edit-form textarea{ width:100%; padding:8px; margin-top:4px; border:1px solid var(--line); border-radius:4px; font-family:'Jost',sans-serif; font-size:13px; box-sizing:border-box; }
+  .edit-form label{ font-size:12px; margin-top:8px; }
+  .edit-form label:first-child{ margin-top:0; }
+  .edit-form .edit-btns{ margin-top:10px; display:flex; gap:8px; }
+  .edit-form button{ margin:0; padding:7px 14px; font-size:12px; }
+  .edit-form .abbrechen-btn{ background:none; color:var(--moss-deep); border:1px solid var(--line); }
   .admin-nav{ text-align:center; padding:14px 0 0; font-size:13px; }
   .admin-nav a{ color:var(--moss-deep); text-decoration:none; }
   .admin-nav a:hover{ text-decoration:underline; }
@@ -74,6 +83,9 @@
       <label>Preis (€)</label>
       <input type="number" id="preis" placeholder="z.B. 25" min="0" step="0.5" required>
 
+      <label>Beschreibung (optional)</label>
+      <input type="text" id="beschreibung" placeholder="z.B. Sonnenuntergang am Neckar, aufgenommen im Herbst 2026">
+
       <label>Bild</label>
       <input type="file" id="datei" accept="image/jpeg,image/png" required>
       <p class="hinweis">Wasserzeichen wird automatisch aufs Vorschaubild gesetzt.</p>
@@ -92,7 +104,7 @@
 <script type="module">
   import { auth, db, storage } from "../firebase-config.js";
   import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-  import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
   import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
   document.getElementById('login-btn').addEventListener('click', async () => {
@@ -168,6 +180,7 @@
     e.preventDefault();
     const titel = document.getElementById('titel').value;
     const preis = parseFloat(document.getElementById('preis').value);
+    const beschreibung = document.getElementById('beschreibung').value;
     const datei = document.getElementById('datei').files[0];
     const status = document.getElementById('status');
     if (!datei) return;
@@ -188,7 +201,7 @@
     await uploadBytes(originalRef, datei);
 
     await addDoc(collection(db, 'landschaftsfotos'), {
-      titel, preis, bildUrl, dateiId,
+      titel, preis, beschreibung, bildUrl, dateiId,
       erstelltAm: serverTimestamp()
     });
 
@@ -211,6 +224,33 @@
   }
   window.fotoLoeschen = fotoLoeschen;
 
+  function editFormAnzeigen(fotoId, box, aktuelleDaten) {
+    box.querySelector('.foto-info').innerHTML = `
+      <div class="edit-form">
+        <label>Titel</label>
+        <input type="text" class="edit-titel" value="${aktuelleDaten.titel.replace(/"/g, '&quot;')}">
+        <label>Preis (€)</label>
+        <input type="number" class="edit-preis" value="${aktuelleDaten.preis}" min="0" step="0.5">
+        <label>Beschreibung</label>
+        <textarea class="edit-beschreibung" rows="2">${aktuelleDaten.beschreibung || ''}</textarea>
+        <div class="edit-btns">
+          <button type="button" class="speichern-btn">Speichern</button>
+          <button type="button" class="abbrechen-btn">Abbrechen</button>
+        </div>
+      </div>
+    `;
+    box.querySelector('.speichern-btn').addEventListener('click', async () => {
+      const neuerTitel = box.querySelector('.edit-titel').value;
+      const neuerPreis = parseFloat(box.querySelector('.edit-preis').value);
+      const neueBeschreibung = box.querySelector('.edit-beschreibung').value;
+      await updateDoc(doc(db, 'landschaftsfotos', fotoId), {
+        titel: neuerTitel, preis: neuerPreis, beschreibung: neueBeschreibung
+      });
+      fotosLaden();
+    });
+    box.querySelector('.abbrechen-btn').addEventListener('click', () => fotosLaden());
+  }
+
   async function fotosLaden() {
     const q = query(collection(db, 'landschaftsfotos'), orderBy('erstelltAm', 'desc'));
     const snapshot = await getDocs(q);
@@ -225,10 +265,15 @@
         <div class="foto-info">
           <div class="titel">${f.titel}</div>
           <div class="preis">${f.preis.toFixed(2)} €</div>
+          ${f.beschreibung ? `<div class="beschreibung">${f.beschreibung}</div>` : ''}
+          <button class="bearbeiten-link" data-id="${docSnap.id}">bearbeiten</button>
           <button class="loeschen-link" data-id="${docSnap.id}" data-datei="${f.dateiId}" data-titel="${f.titel}">löschen</button>
         </div>
       `;
       grid.appendChild(box);
+      box.querySelector('.bearbeiten-link').addEventListener('click', () => {
+        editFormAnzeigen(docSnap.id, box, f);
+      });
     });
     document.querySelectorAll('.loeschen-link').forEach(btn => {
       btn.addEventListener('click', () => {
