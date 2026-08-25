@@ -35,6 +35,13 @@
   .karte-info button:disabled{ opacity:0.6; cursor:wait; }
 
   .leer{ text-align:center; color:var(--ink-soft); padding:60px 20px; font-family:'Cormorant Garamond', serif; font-style:italic; font-size:19px; }
+
+  .karte img{ cursor:zoom-in; }
+
+  .lightbox{ display:none; position:fixed; inset:0; background:rgba(20,19,15,0.94); z-index:100; align-items:center; justify-content:center; padding:20px; }
+  .lightbox.offen{ display:flex; }
+  .lightbox img{ max-width:92vw; max-height:88vh; object-fit:contain; cursor:default; }
+  .lightbox-close{ position:absolute; top:20px; right:26px; color:#fff; font-size:34px; cursor:pointer; background:none; border:none; line-height:1; }
 </style>
 </head>
 <body>
@@ -47,6 +54,11 @@
 
 <div class="grid" id="grid">
   <p class="leer">Fotos werden geladen …</p>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close">&times;</button>
+  <img id="lightbox-img" src="" alt="">
 </div>
 
 <script type="module">
@@ -90,6 +102,8 @@ Liebe Grüße`;
 
   async function fotosLaden() {
     const grid = document.getElementById('grid');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
     try {
       const q = query(collection(db, 'landschaftsfotos'), orderBy('erstelltAm', 'desc'));
       const snapshot = await getDocs(q);
@@ -114,12 +128,23 @@ Liebe Grüße`;
         karte.querySelector('.kaufen-btn').addEventListener('click', (e) => {
           kaufen(docSnap.id, e.target);
         });
+        karte.querySelector('img').addEventListener('click', () => {
+          lightboxImg.src = f.bildUrl;
+          lightbox.classList.add('offen');
+        });
       });
     } catch (e) {
       grid.innerHTML = '<p class="leer">Die Fotos konnten gerade nicht geladen werden.</p>';
     }
   }
   fotosLaden();
+
+  document.getElementById('lightbox-close').addEventListener('click', () => {
+    document.getElementById('lightbox').classList.remove('offen');
+  });
+  document.getElementById('lightbox').addEventListener('click', (e) => {
+    if (e.target.id === 'lightbox') e.target.classList.remove('offen');
+  });
 </script>
 </body>
 </html>
