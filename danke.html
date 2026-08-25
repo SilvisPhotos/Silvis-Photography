@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Danke — Silvis Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FAF6F0; --ink:#2B2622; --ink-soft:#5B534C;
+    --rose:#C9A79C; --rose-line:#3a332d; --panel:#FFFDFB;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--cream); color:var(--ink); font-family:'EB Garamond', serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .box{
+    max-width:440px; width:100%; text-align:center;
+    background:var(--panel); border:1px solid var(--rose-line); padding:48px 40px;
+  }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight:400; font-style:italic; font-size:32px; margin-bottom:14px; }
+  p{ color:var(--ink-soft); font-size:16px; margin-bottom:24px; }
+  a.download-btn{
+    display:inline-block; padding:15px 34px; background:var(--ink); color:var(--cream); text-decoration:none;
+    font-family:'Cormorant Garamond', serif; font-size:19px; letter-spacing:0.04em; transition:background .25s ease;
+  }
+  a.download-btn:hover{ background:var(--rose); }
+  .hinweis{ font-size:13px; color:var(--ink-soft); margin-top:18px; }
+  .fehler{ color:#a3453b; }
+</style>
+</head>
+<body>
+
+<div class="box" id="box">
+  <h1>Einen Moment …</h1>
+  <p>Wir prüfen deine Zahlung.</p>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+  const box = document.getElementById('box');
+
+  async function laden() {
+    if (!sessionId) {
+      box.innerHTML = '<h1 class="fehler">Keine Bestellung gefunden</h1><p>Falls du gerade bezahlt hast, versuch bitte den Link aus deiner Stripe-Bestätigungsmail.</p>';
+      return;
+    }
+    try {
+      const antwort = await fetch(`https://getdownloadlink-ke2pteowva-uc.a.run.app?session_id=${encodeURIComponent(sessionId)}`);
+      const daten = await antwort.json();
+      if (antwort.ok && daten.url) {
+        box.innerHTML = `
+          <h1>Danke für deinen Kauf!</h1>
+          <p>"${daten.titel}" ist bereit zum Download.</p>
+          <a class="download-btn" href="${daten.url}" download>Jetzt herunterladen</a>
+          <p class="hinweis">Der Link ist eine Stunde lang gültig. Bei Problemen melde dich gern bei kontakt@silvis-photography.com</p>
+        `;
+      } else {
+        box.innerHTML = `<h1 class="fehler">Noch nicht bestätigt</h1><p>${daten.error || 'Deine Zahlung konnte noch nicht bestätigt werden. Falls du gerade bezahlt hast, lade die Seite in ein paar Sekunden neu.'}</p>`;
+      }
+    } catch (e) {
+      box.innerHTML = '<h1 class="fehler">Etwas ist schiefgelaufen</h1><p>Bitte lade die Seite neu oder melde dich bei kontakt@silvis-photography.com</p>';
+    }
+  }
+  laden();
+</script>
+</body>
+</html>
