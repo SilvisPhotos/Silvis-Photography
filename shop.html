@@ -146,8 +146,7 @@ Liebe Grüße`;
             ${f.beschreibung ? `<div class="beschreibung">${f.beschreibung}</div>` : ''}
             <div class="preis">${f.preis.toFixed(2)} €</div>
             <button type="button" class="kaufen-btn" data-id="${docSnap.id}">Kaufen</button>
-            <br>
-            <a class="anfragen-link" href="${anfrageLink(f.titel, f.preis)}">Erst anfragen</a>
+            
           </div>
         `;
         grid.appendChild(karte);
