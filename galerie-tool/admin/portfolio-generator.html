@@ -121,8 +121,7 @@
   <div class="status" id="status"></div>
 
   <div class="hinweis-box">
-    <strong>So geht's weiter:</strong> Nach dem Klick lädt eine Datei <code>portfolio.html</code> runter. Die schickst du per AirDrop (oder Mail/Dateien-App) aufs iPad und öffnest sie dort in Safari — läuft danach komplett offline, da alle Bilder direkt in der Datei stecken. Am besten mit "Zum Home-Bildschirm" speichern, dann startet sie wie eine eigene App.<br><br>
-    Bilder werden automatisch etwas verkleinert (max. 1800px) und komprimiert, damit die Datei nicht zu groß wird — für die Ansicht auf dem iPad reicht das völlig.
+    <strong>So geht's weiter:</strong> Nach dem Klick lädt eine Datei <code>portfolio.html</code> runter. Die schickst du per AirDrop (oder Mail/Dateien-App) aufs iPad und öffnest sie dort.
   </div>
 </div>
 </div>
@@ -187,7 +186,6 @@
   }
 
   document.getElementById('hinzufuegen-btn').addEventListener('click', zeileHinzufuegen);
-  // Direkt mit 3 leeren Zeilen starten
   zeileHinzufuegen();
   zeileHinzufuegen();
   zeileHinzufuegen();
@@ -260,7 +258,24 @@
 
   function portfolioHtmlErstellen(titel, fotos) {
     const kategorien = [...new Set(fotos.map(f => f.kategorie).filter(k => k))];
-    const fotosJson = JSON.stringify(fotos).replace(/</g, '\\u003c');
+    
+    // HTML für Slides vorab rendern (funktioniert ohne JS)
+    const slidesHtml = fotos.map((f, i) => `
+      <div class="slide" data-kategorie="${f.kategorie || ''}">
+        <img src="${f.src}" alt="">
+        ${f.titel ? `<div class="bildtitel">${f.titel}</div>` : ''}
+      </div>
+    `).join('');
+
+    // HTML für Indikatorpunkte
+    const punkteHtml = fotos.map((_, i) => `<div class="punkt ${i === 0 ? 'aktiv' : ''}"></div>`).join('');
+
+    // HTML für Kategorie-Filter-Buttons
+    let kategorienHtml = '';
+    if (kategorien.length > 1) {
+      kategorienHtml = `<button class="kategorie-btn aktiv" onclick="filterKat(this, '')">Alle</button>` +
+        kategorien.map(k => `<button class="kategorie-btn" onclick="filterKat(this, '${k}')">${k}</button>`).join('');
+    }
 
     return `<!DOCTYPE html>
 <html lang="de">
@@ -269,12 +284,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>${titel}</title>
 <style>
-  @font-face{
-    font-family:'FrauncesLocal';
-    src:local('Fraunces');
-  }
   *{box-sizing:border-box; margin:0; padding:0;}
-  html,body{ height:100%; overflow:hidden; background:#1c2318; }
+  html,body{ height:100%; width:100%; overflow:hidden; background:#1c2318; }
   body{
     font-family:-apple-system, 'Jost', sans-serif; -webkit-user-select:none; user-select:none;
   }
@@ -282,9 +293,11 @@
   .kopf{
     position:fixed; top:0; left:0; right:0; z-index:10;
     padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 14px;
-    background:linear-gradient(rgba(28,35,24,0.55), rgba(28,35,24,0));
+    background:linear-gradient(rgba(28,35,24,0.7), rgba(28,35,24,0));
     display:flex; flex-direction:column; align-items:center; gap:10px;
+    pointer-events:none;
   }
+  .kopf * { pointer-events:auto; }
   .kopf h1{
     color:#f3ead9; font-size:16px; font-weight:400; font-style:italic; letter-spacing:0.02em;
     font-family:Georgia, serif; text-align:center;
@@ -297,24 +310,24 @@
   .kategorie-btn.aktiv{ background:#c79a52; border-color:#c79a52; color:#1c2318; }
 
   .slider{
-    height:100%; display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;
+    height:100vh; width:100vw; display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch; scroll-behavior:smooth;
   }
   .slide{
-    flex:0 0 100%; height:100%; scroll-snap-align:start;
+    flex:0 0 100vw; width:100vw; height:100vh; scroll-snap-align:start;
     display:flex; align-items:center; justify-content:center; position:relative;
   }
   .slide img{
-    max-width:100%; max-height:100%; object-fit:contain;
+    max-width:100%; max-height:100%; object-fit:contain; display:block;
   }
   .slide .bildtitel{
     position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + 24px); left:0; right:0;
     text-align:center; color:#f3ead9; font-family:Georgia, serif; font-style:italic; font-size:15px;
-    text-shadow:0 1px 6px rgba(0,0,0,0.6);
+    text-shadow:0 1px 6px rgba(0,0,0,0.8); pointer-events:none;
   }
   .punkte{
     position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 10px); left:0; right:0; z-index:10;
-    display:flex; justify-content:center; gap:6px;
+    display:flex; justify-content:center; gap:6px; pointer-events:none;
   }
   .punkt{ width:6px; height:6px; border-radius:50%; background:rgba(243,234,217,0.35); }
   .punkt.aktiv{ background:#f3ead9; }
@@ -324,74 +337,59 @@
 
 <div class="kopf">
   <h1>${titel}</h1>
-  <div class="kategorien" id="kategorien" style="display:none;"></div>
+  <div class="kategorien">${kategorienHtml}</div>
 </div>
 
-<div class="slider" id="slider"></div>
-<div class="punkte" id="punkte"></div>
+<div class="slider" id="slider">
+  ${slidesHtml}
+</div>
+
+<div class="punkte" id="punkte">
+  ${punkteHtml}
+</div>
 
 <script>
-  const alleFotos = ${fotosJson};
-  const kategorienListe = ${JSON.stringify(kategorien)};
-
-  const slider = document.getElementById('slider');
-  const punkteEl = document.getElementById('punkte');
-  const kategorienEl = document.getElementById('kategorien');
-
-  function slidesRendern(fotos) {
-    slider.innerHTML = '';
-    punkteEl.innerHTML = '';
-    fotos.forEach((f) => {
-      const slide = document.createElement('div');
-      slide.className = 'slide';
-      slide.innerHTML = '<img src="' + f.src + '" alt="">' +
-        (f.titel ? '<div class="bildtitel">' + f.titel + '</div>' : '');
-      slider.appendChild(slide);
-
-      const punkt = document.createElement('div');
-      punkt.className = 'punkt';
-      punkteEl.appendChild(punkt);
-    });
-    aktualisierePunkte();
-  }
-
+  var slider = document.getElementById('slider');
+  
   function aktualisierePunkte() {
-    const breite = slider.clientWidth;
-    const index = Math.round(slider.scrollLeft / breite);
-    document.querySelectorAll('.punkt').forEach((p, i) => {
-      p.classList.toggle('aktiv', i === index);
-    });
+    var breite = slider.clientWidth;
+    if (!breite) return;
+    var index = Math.round(slider.scrollLeft / breite);
+    var sichtbareSlides = slider.querySelectorAll('.slide:not([style*="display: none"])');
+    var punkte = document.querySelectorAll('.punkt');
+    
+    for (var i = 0; i < punkte.length; i++) {
+      if (i < sichtbareSlides.length) {
+        punkte[i].style.display = 'block';
+        punkte[i].className = 'punkt' + (i === index ? ' aktiv' : '');
+      } else {
+        punkte[i].style.display = 'none';
+      }
+    }
   }
-  slider.addEventListener('scroll', () => {
+
+  slider.addEventListener('scroll', function() {
     window.requestAnimationFrame(aktualisierePunkte);
   });
 
-  if (kategorienListe.length > 1) {
-    kategorienEl.style.display = 'flex';
-    const alleBtn = document.createElement('button');
-    alleBtn.className = 'kategorie-btn aktiv';
-    alleBtn.textContent = 'Alle';
-    alleBtn.addEventListener('click', () => { setKategorie(null, alleBtn); });
-    kategorienEl.appendChild(alleBtn);
+  function filterKat(btn, kat) {
+    var btns = document.querySelectorAll('.kategorie-btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('aktiv');
+    btn.classList.add('aktiv');
 
-    kategorienListe.forEach(kat => {
-      const btn = document.createElement('button');
-      btn.className = 'kategorie-btn';
-      btn.textContent = kat;
-      btn.addEventListener('click', () => { setKategorie(kat, btn); });
-      kategorienEl.appendChild(btn);
-    });
+    var slides = slider.querySelectorAll('.slide');
+    for (var j = 0; j < slides.length; j++) {
+      var sKat = slides[j].getAttribute('data-kategorie');
+      if (!kat || sKat === kat) {
+        slides[j].style.display = 'flex';
+      } else {
+        slides[j].style.display = 'none';
+      }
+    }
+    slider.scrollLeft = 0;
+    aktualisierePunkte();
   }
-
-  function setKategorie(kat, aktiverBtn) {
-    document.querySelectorAll('.kategorie-btn').forEach(b => b.classList.remove('aktiv'));
-    aktiverBtn.classList.add('aktiv');
-    const gefiltert = kat ? alleFotos.filter(f => f.kategorie === kat) : alleFotos;
-    slidesRendern(gefiltert);
-  }
-
-  slidesRendern(alleFotos);
-<\/script>.
+<\/script>
 </body>
 </html>`;
   }
