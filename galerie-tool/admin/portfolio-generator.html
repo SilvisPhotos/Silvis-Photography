@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio-Generator — Silvis Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sand:#f3ead9; --sand-deep:#e9dcc3; --moss:#45543a; --moss-deep:#2a3324;
+    --gold:#c79a52; --ink:#2b2a24; --line: rgba(43,42,36,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--sand); color:var(--ink); font-family:'Jost', sans-serif; font-weight:300;
+    line-height:1.6; padding:56px 24px 100px;
+  }
+  .wrap{ max-width:760px; margin:0 auto; }
+  header{ margin-bottom:40px; }
+  .eyebrow{ font-size:13px; letter-spacing:0.14em; text-transform:uppercase; color:var(--moss-deep); font-weight:500; }
+  h1{ font-family:'Fraunces', serif; font-weight:300; font-style:italic; font-size:clamp(28px,4vw,38px); margin-top:10px; }
+  header p{ margin-top:14px; color:var(--moss-deep); font-size:15px; max-width:560px; }
+
+  label{ display:block; font-size:13px; letter-spacing:0.02em; color:var(--moss-deep); margin-bottom:6px; }
+  input[type="text"]{
+    width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:6px;
+    background:white; font-family:'Jost',sans-serif; font-size:14px; box-sizing:border-box;
+  }
+  input[type="text"]:focus{ outline:none; border-color:var(--moss); }
+
+  .titel-feld{ margin-bottom:36px; }
+
+  .fotos-liste{ display:flex; flex-direction:column; gap:16px; margin-bottom:20px; }
+  .foto-zeile{
+    background:white; border-radius:10px; padding:20px; box-shadow:0 2px 12px rgba(0,0,0,0.04);
+    display:grid; grid-template-columns:90px 1fr auto; gap:16px; align-items:center;
+  }
+  .vorschau{
+    width:90px; height:90px; border-radius:6px; overflow:hidden; background:var(--sand-deep);
+    display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--moss-deep); text-align:center;
+  }
+  .vorschau img{ width:100%; height:100%; object-fit:cover; }
+  .felder{ display:flex; flex-direction:column; gap:10px; }
+  .felder .zeile-2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .entfernen-btn{
+    background:none; border:none; color:#a3453b; cursor:pointer; font-size:13px;
+    text-decoration:underline; font-family:'Jost',sans-serif; white-space:nowrap;
+  }
+  .datei-input{ font-size:13px; }
+
+  .hinzufuegen-btn{
+    background:white; border:1px dashed var(--moss); color:var(--moss); border-radius:8px;
+    padding:16px; width:100%; cursor:pointer; font-family:'Jost',sans-serif; font-size:14px;
+    margin-bottom:36px; transition:background .15s;
+  }
+  .hinzufuegen-btn:hover{ background:var(--sand-deep); }
+
+  .erstellen-btn{
+    background:var(--moss); color:white; border:none; border-radius:6px; padding:15px 30px;
+    font-family:'Jost',sans-serif; font-size:15px; cursor:pointer; transition:background .2s;
+  }
+  .erstellen-btn:hover{ background:var(--moss-deep); }
+  .erstellen-btn:disabled{ opacity:0.5; cursor:wait; }
+
+  .status{ margin-top:16px; font-size:14px; color:var(--moss-deep); }
+  .hinweis-box{
+    margin-top:40px; padding:20px 22px; background:white; border-radius:10px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.04); font-size:13.5px; color:var(--moss-deep);
+  }
+  .hinweis-box strong{ color:var(--ink); }
+  .admin-nav{ text-align:center; padding:0 0 30px; font-size:13px; display:flex; justify-content:center; gap:18px; }
+  .admin-nav a{ color:var(--moss-deep); text-decoration:none; }
+  .admin-nav a:hover{ text-decoration:underline; }
+  #login-box{ max-width:380px; margin:80px auto; text-align:center; }
+  #login-box .card{ background:white; border-radius:10px; padding:32px; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
+  #login-box h1{ font-family:'Fraunces', serif; font-weight:500; font-size:24px; margin-bottom:12px; text-align:center; }
+  #login-box p{ color:var(--moss-deep); margin-bottom:20px; font-size:14px; }
+  #login-box input{ margin-top:12px; }
+  #login-box button{ width:100%; }
+  #login-fehler{ color:#a3453b; font-size:13px; margin-top:12px; }
+  #generator-bereich{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="login-box" class="wrap">
+  <div class="card">
+    <h1>Admin-Login</h1>
+    <p>Nur für dich — trag deine E-Mail und dein Passwort ein.</p>
+    <input type="email" id="login-email" placeholder="E-Mail">
+    <input type="password" id="login-passwort" placeholder="Passwort" style="margin-top:12px;">
+    <button id="login-btn" type="button">Login</button>
+    <p id="login-fehler"></p>
+  </div>
+</div>
+
+<div id="generator-bereich">
+<div class="admin-nav">
+  <a href="index.html">← Zur Galerie-Verwaltung</a>
+  <a href="landschaften-admin.html">Zur Shop-Verwaltung →</a>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Silvis Photography</div>
+    <h1>Portfolio-Generator</h1>
+    <p>Wähl deine Lieblingsfotos aus, gib optional Titel und Kategorie an, und erstelle eine einzige Datei — die läuft danach auf dem iPad komplett ohne Internet.</p>
+  </header>
+
+  <div class="titel-feld">
+    <label>Titel des Portfolios</label>
+    <input type="text" id="portfolio-titel" value="Portfolio — Silvis Photography">
+  </div>
+
+  <div class="fotos-liste" id="fotos-liste"></div>
+
+  <button class="hinzufuegen-btn" id="hinzufuegen-btn" type="button">+ Foto hinzufügen</button>
+
+  <button class="erstellen-btn" id="erstellen-btn" type="button">Portfolio als Datei erstellen</button>
+  <div class="status" id="status"></div>
+
+  <div class="hinweis-box">
+    <strong>So geht's weiter:</strong> Nach dem Klick lädt eine Datei <code>portfolio.html</code> runter. Die schickst du per AirDrop (oder Mail/Dateien-App) aufs iPad und öffnest sie dort in Safari — läuft danach komplett offline, da alle Bilder direkt in der Datei stecken. Am besten mit "Zum Home-Bildschirm" speichern, dann startet sie wie eine eigene App.<br><br>
+    Bilder werden automatisch etwas verkleinert (max. 1800px) und komprimiert, damit die Datei nicht zu groß wird — für die Ansicht auf dem iPad reicht das völlig.
+  </div>
+</div>
+</div>
+
+<script type="module">
+  import { auth } from "../firebase-config.js";
+  import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value;
+    const passwort = document.getElementById('login-passwort').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, passwort);
+    } catch (err) {
+      document.getElementById('login-fehler').textContent = 'Login fehlgeschlagen: ' + err.message;
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('generator-bereich').style.display = 'block';
+    }
+  });
+</script>
+
+<script>
+  const fotosListeEl = document.getElementById('fotos-liste');
+  let zeilenZaehler = 0;
+
+  function zeileHinzufuegen() {
+    zeilenZaehler++;
+    const id = zeilenZaehler;
+    const div = document.createElement('div');
+    div.className = 'foto-zeile';
+    div.dataset.id = id;
+    div.innerHTML = `
+      <div class="vorschau" id="vorschau-${id}">Kein Bild</div>
+      <div class="felder">
+        <input type="file" class="datei-input" accept="image/jpeg,image/png" data-id="${id}">
+        <div class="zeile-2">
+          <input type="text" placeholder="Titel (optional)" class="titel-input">
+          <input type="text" placeholder="Kategorie (optional, z.B. Hochzeit)" class="kategorie-input">
+        </div>
+      </div>
+      <button type="button" class="entfernen-btn">entfernen</button>
+    `;
+    fotosListeEl.appendChild(div);
+
+    div.querySelector('.datei-input').addEventListener('change', (e) => {
+      const datei = e.target.files[0];
+      if (!datei) return;
+      const vorschau = document.getElementById(`vorschau-${id}`);
+      const url = URL.createObjectURL(datei);
+      vorschau.innerHTML = `<img src="${url}" alt="">`;
+      div.dataset.hatBild = 'true';
+    });
+
+    div.querySelector('.entfernen-btn').addEventListener('click', () => {
+      div.remove();
+    });
+  }
+
+  document.getElementById('hinzufuegen-btn').addEventListener('click', zeileHinzufuegen);
+  // Direkt mit 3 leeren Zeilen starten
+  zeileHinzufuegen();
+  zeileHinzufuegen();
+  zeileHinzufuegen();
+
+  function bildVerkleinern(datei) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1800;
+        let breite = img.width;
+        let hoehe = img.height;
+        if (breite > hoehe && breite > MAX) {
+          hoehe = Math.round(hoehe * (MAX / breite));
+          breite = MAX;
+        } else if (hoehe > MAX) {
+          breite = Math.round(breite * (MAX / hoehe));
+          hoehe = MAX;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = breite; canvas.height = hoehe;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, breite, hoehe);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = URL.createObjectURL(datei);
+    });
+  }
+
+  document.getElementById('erstellen-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('erstellen-btn');
+    const status = document.getElementById('status');
+    const zeilen = Array.from(document.querySelectorAll('.foto-zeile')).filter(z => z.dataset.hatBild === 'true');
+
+    if (zeilen.length === 0) {
+      status.textContent = 'Bitte mindestens ein Foto auswählen.';
+      return;
+    }
+
+    btn.disabled = true;
+    const fotos = [];
+
+    for (let i = 0; i < zeilen.length; i++) {
+      status.textContent = `Bereite Bilder vor... (${i + 1}/${zeilen.length})`;
+      const zeile = zeilen[i];
+      const datei = zeile.querySelector('.datei-input').files[0];
+      const titel = zeile.querySelector('.titel-input').value;
+      const kategorie = zeile.querySelector('.kategorie-input').value.trim();
+      const dataUrl = await bildVerkleinern(datei);
+      fotos.push({ src: dataUrl, titel, kategorie });
+    }
+
+    status.textContent = 'Erstelle Datei...';
+    const portfolioTitel = document.getElementById('portfolio-titel').value || 'Portfolio';
+    const html = portfolioHtmlErstellen(portfolioTitel, fotos);
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'portfolio.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    const groesseMb = (blob.size / (1024 * 1024)).toFixed(1);
+    status.textContent = `Fertig! "portfolio.html" wurde heruntergeladen (${groesseMb} MB).`;
+    btn.disabled = false;
+  });
+
+  function portfolioHtmlErstellen(titel, fotos) {
+    const kategorien = [...new Set(fotos.map(f => f.kategorie).filter(k => k))];
+    const fotosJson = JSON.stringify(fotos).replace(/</g, '\\u003c');
+
+    return `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>${titel}</title>
+<style>
+  @font-face{
+    font-family:'FrauncesLocal';
+    src:local('Fraunces');
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{ height:100%; overflow:hidden; background:#1c2318; }
+  body{
+    font-family:-apple-system, 'Jost', sans-serif; -webkit-user-select:none; user-select:none;
+  }
+
+  .kopf{
+    position:fixed; top:0; left:0; right:0; z-index:10;
+    padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 14px;
+    background:linear-gradient(rgba(28,35,24,0.55), rgba(28,35,24,0));
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .kopf h1{
+    color:#f3ead9; font-size:16px; font-weight:400; font-style:italic; letter-spacing:0.02em;
+    font-family:Georgia, serif; text-align:center;
+  }
+  .kategorien{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .kategorie-btn{
+    background:rgba(243,234,217,0.14); color:#f3ead9; border:1px solid rgba(243,234,217,0.3);
+    border-radius:999px; padding:6px 16px; font-size:12.5px; cursor:pointer; font-family:inherit;
+  }
+  .kategorie-btn.aktiv{ background:#c79a52; border-color:#c79a52; color:#1c2318; }
+
+  .slider{
+    height:100%; display:flex; overflow-x:auto; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .slide{
+    flex:0 0 100%; height:100%; scroll-snap-align:start;
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .slide img{
+    max-width:100%; max-height:100%; object-fit:contain;
+  }
+  .slide .bildtitel{
+    position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + 24px); left:0; right:0;
+    text-align:center; color:#f3ead9; font-family:Georgia, serif; font-style:italic; font-size:15px;
+    text-shadow:0 1px 6px rgba(0,0,0,0.6);
+  }
+  .punkte{
+    position:fixed; bottom:calc(env(safe-area-inset-bottom,0px) + 10px); left:0; right:0; z-index:10;
+    display:flex; justify-content:center; gap:6px;
+  }
+  .punkt{ width:6px; height:6px; border-radius:50%; background:rgba(243,234,217,0.35); }
+  .punkt.aktiv{ background:#f3ead9; }
+</style>
+</head>
+<body>
+
+<div class="kopf">
+  <h1>${titel}</h1>
+  <div class="kategorien" id="kategorien" style="display:none;"></div>
+</div>
+
+<div class="slider" id="slider"></div>
+<div class="punkte" id="punkte"></div>
+
+<script>
+  const alleFotos = ${fotosJson};
+  const kategorienListe = ${JSON.stringify(kategorien)};
+
+  const slider = document.getElementById('slider');
+  const punkteEl = document.getElementById('punkte');
+  const kategorienEl = document.getElementById('kategorien');
+
+  function slidesRendern(fotos) {
+    slider.innerHTML = '';
+    punkteEl.innerHTML = '';
+    fotos.forEach((f) => {
+      const slide = document.createElement('div');
+      slide.className = 'slide';
+      slide.innerHTML = '<img src="' + f.src + '" alt="">' +
+        (f.titel ? '<div class="bildtitel">' + f.titel + '</div>' : '');
+      slider.appendChild(slide);
+
+      const punkt = document.createElement('div');
+      punkt.className = 'punkt';
+      punkteEl.appendChild(punkt);
+    });
+    aktualisierePunkte();
+  }
+
+  function aktualisierePunkte() {
+    const breite = slider.clientWidth;
+    const index = Math.round(slider.scrollLeft / breite);
+    document.querySelectorAll('.punkt').forEach((p, i) => {
+      p.classList.toggle('aktiv', i === index);
+    });
+  }
+  slider.addEventListener('scroll', () => {
+    window.requestAnimationFrame(aktualisierePunkte);
+  });
+
+  if (kategorienListe.length > 1) {
+    kategorienEl.style.display = 'flex';
+    const alleBtn = document.createElement('button');
+    alleBtn.className = 'kategorie-btn aktiv';
+    alleBtn.textContent = 'Alle';
+    alleBtn.addEventListener('click', () => { setKategorie(null, alleBtn); });
+    kategorienEl.appendChild(alleBtn);
+
+    kategorienListe.forEach(kat => {
+      const btn = document.createElement('button');
+      btn.className = 'kategorie-btn';
+      btn.textContent = kat;
+      btn.addEventListener('click', () => { setKategorie(kat, btn); });
+      kategorienEl.appendChild(btn);
+    });
+  }
+
+  function setKategorie(kat, aktiverBtn) {
+    document.querySelectorAll('.kategorie-btn').forEach(b => b.classList.remove('aktiv'));
+    aktiverBtn.classList.add('aktiv');
+    const gefiltert = kat ? alleFotos.filter(f => f.kategorie === kat) : alleFotos;
+    slidesRendern(gefiltert);
+  }
+
+  slidesRendern(alleFotos);
+</script>
+</body>
+</html>`;
+  }
+</script>
+</body>
+</html>
