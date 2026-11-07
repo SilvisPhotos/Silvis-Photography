@@ -147,6 +147,11 @@
         <option value="download">Download-Galerie — Bilder direkt ohne Wasserzeichen herunterladbar</option>
       </select>
 
+      <div id="limit-feld">
+        <label>Max. Anzahl Bilder zur Auswahl (optional)</label>
+        <input type="number" id="max-auswahl" min="1" step="1" placeholder="z.B. 10 — leer lassen = unbegrenzt">
+      </div>
+
       <label>Ablaufdatum (optional)</label>
       <input type="date" id="ablauf-datum">
 
@@ -172,7 +177,7 @@
 <script type="module">
   import { auth, db, storage } from "../firebase-config.js";
   import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-  import { collection, addDoc, getDocs, getDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { collection, addDoc, getDocs, getDoc, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
   import { ref, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
   document.getElementById('login-btn').addEventListener('click', async () => {
@@ -205,6 +210,11 @@
     const zufall = Math.random().toString(36).substring(2, 6);
     return `${basis}-${zufall}`;
   }
+
+  // Limit-Feld nur bei Auswahl-Galerien sinnvoll
+  document.getElementById('galerie-typ').addEventListener('change', (e) => {
+    document.getElementById('limit-feld').style.display = e.target.value === 'download' ? 'none' : 'block';
+  });
 
   // ---- Passwort-Generator ----
   const PASSWORT_WOERTER = [
@@ -295,6 +305,8 @@ Silvi`;
     const passwort = document.getElementById('galerie-passwort').value;
     const galerieTyp = document.getElementById('galerie-typ').value;
     const ablaufWert = document.getElementById('ablauf-datum').value;
+    const limitWert = parseInt(document.getElementById('max-auswahl').value, 10);
+    const maxAuswahl = (galerieTyp === 'auswahl' && limitWert > 0) ? limitWert : null;
     const slug = slugErstellen(titel);
     const passwortHash = await einfacherHash(passwort);
 
@@ -302,6 +314,7 @@ Silvi`;
       slug, titel, kundeName, passwortHash,
       passwortKlartext: passwort,
       galerieTyp,
+      maxAuswahl,
       // Bei Download-Galerien ist der Download von Anfang an frei —
       // es gibt ja keinen separaten Auswahl-Schritt davor
       downloadFreigegeben: galerieTyp === 'download' ? true : false,
@@ -372,6 +385,7 @@ Silvi`;
         <td>
           <div class="link-text">${ansehenLink}</div>
           <div class="meta-zeile">${typAnzeige(g.galerieTyp)}</div>
+          ${g.galerieTyp === 'download' ? '' : `<div class="meta-zeile">Auswahl-Limit: ${g.maxAuswahl ? g.maxAuswahl + ' Bilder' : 'unbegrenzt'}</div>`}
           <div class="passwort-zeile">
             Passwort: <span class="pw-versteckt">••••••</span><span class="pw-klartext" style="display:none;">${echtesPasswort || 'nicht gespeichert'}</span>
             ${echtesPasswort ? '<button type="button" class="pw-toggle">anzeigen</button>' : ''}
@@ -388,6 +402,7 @@ Silvi`;
             <button class="aktion-btn kopier-link-btn" type="button">📋 Link kopieren</button>
             <button class="aktion-btn kopier-text-btn" type="button">📋 Text kopieren</button>
             <button class="aktion-btn qr-zeile-btn" type="button">🔳 QR-Code</button>
+            ${g.galerieTyp === 'download' ? '' : '<button class="aktion-btn limit-btn" type="button">✏️ Limit ändern</button>'}
             <button class="loeschen-btn" data-id="${galerieId}" data-titel="${g.titel}">löschen</button>
           </div>
         </td>
@@ -399,6 +414,16 @@ Silvi`;
         textKopieren(e.target, mailText(ansehenLink, echtesPasswort || '(kein Passwort gespeichert)', g.kundeName));
       });
       zeile.querySelector('.qr-zeile-btn').addEventListener('click', () => qrAnzeigen(ansehenLink));
+      const limitBtn = zeile.querySelector('.limit-btn');
+      if (limitBtn) {
+        limitBtn.addEventListener('click', async () => {
+          const eingabe = prompt('Wie viele Bilder darf ausgewählt werden? (leer lassen = unbegrenzt)', g.maxAuswahl || '');
+          if (eingabe === null) return;
+          const zahl = parseInt(eingabe, 10);
+          await updateDoc(doc(db, 'galerien', galerieId), { maxAuswahl: zahl > 0 ? zahl : null });
+          galerienLaden();
+        });
+      }
       const pwToggle = zeile.querySelector('.pw-toggle');
       if (pwToggle) {
         pwToggle.addEventListener('click', () => {
