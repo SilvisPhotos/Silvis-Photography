@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ö<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -139,11 +139,20 @@
   .bild-wrap{ position:relative; overflow:hidden; cursor:pointer; background:#e9e3da; }
   .bild-wrap img{ width:100%; height:100%; object-fit:cover; aspect-ratio:2/3; display:block; transition:transform .8s cubic-bezier(.2,.7,.2,1); }
   .bild-wrap:hover img{ transform:scale(1.05); }
-  .overlay-btn{ position:absolute; opacity:0; transition:opacity .25s ease; z-index:2; }
-  .bild-wrap:hover .overlay-btn{ opacity:1; }
-  .herz{ bottom:12px; left:12px; font-size:20px; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
-  .herz.aktiv{ opacity:1; }
-  .lupe{ bottom:12px; right:12px; font-size:18px; color:#fff; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+  /* Herz & Lupe: heller runder Button, auf jedem Foto gut sichtbar */
+  .overlay-btn{
+    position:absolute; z-index:2; bottom:12px;
+    width:42px; height:42px; border-radius:50%;
+    background:rgba(255,255,255,0.9); border:1px solid rgba(0,0,0,0.08);
+    box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .overlay-btn:active{ transform:scale(0.9); }
+  .overlay-btn svg{ width:21px; height:21px; fill:none; stroke:var(--ink); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; transition:fill .15s ease, stroke .15s ease; }
+  .herz{ left:12px; }
+  .herz.aktiv svg{ fill:#d6455d; stroke:#d6455d; }
+  .lupe{ right:12px; }
 
   /* Checkbox-Overlay für Download-Galerien */
   .checkbox-overlay{
@@ -163,9 +172,8 @@
 
   /* Auf Touch-Geräten gibt's kein Hover — Icons dauerhaft sichtbar, größere Tippfläche */
   @media (hover:none) and (pointer:coarse){
-    .overlay-btn{ opacity:1; padding:6px; }
-    .herz{ font-size:24px; }
-    .lupe{ font-size:20px; }
+    .overlay-btn{ width:46px; height:46px; }
+    .overlay-btn svg{ width:23px; height:23px; }
   }
 
   .footer{ text-align:center; margin:0 0 20px; color:var(--ink-soft); font-size:13px; letter-spacing:0.15em; text-transform:uppercase; }
@@ -593,7 +601,7 @@
         <div class="checkbox-overlay" data-id="${b.id}">
           <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
         </div>
-        <span class="overlay-btn lupe">🔍</span>
+        <span class="overlay-btn lupe" data-index="${index}"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span>
       `;
       grid.appendChild(div);
     });
@@ -715,6 +723,12 @@
     grid.querySelectorAll('.bild-wrap img').forEach(img => {
       img.addEventListener('click', () => lightboxZeigen(parseInt(img.dataset.index)));
     });
+    grid.querySelectorAll('.bild-wrap .lupe').forEach(lupe => {
+      lupe.addEventListener('click', (e) => {
+        e.stopPropagation();
+        lightboxZeigen(parseInt(lupe.dataset.index));
+      });
+    });
     document.getElementById('lightbox-close').addEventListener('click', () => { lightbox.style.display = 'none'; });
     document.getElementById('lightbox-prev').addEventListener('click', () => {
       aktuellerIndex = (aktuellerIndex - 1 + alleUrls.length) % alleUrls.length;
@@ -829,8 +843,8 @@
         div.className = 'bild-wrap';
         div.innerHTML = `
           <img src="${daten.previewUrl}" alt="" data-index="${index}">
-          <span class="overlay-btn herz ${daten.favorit ? 'aktiv' : ''}" data-id="${id}">${daten.favorit ? '❤️' : '♡'}</span>
-          <span class="overlay-btn lupe">🔍</span>
+          <span class="overlay-btn herz ${daten.favorit ? 'aktiv' : ''}" data-id="${id}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.3-9C1 7.2 3.4 4 6.8 4c1.9 0 3.4 1 5.2 3 1.8-2 3.3-3 5.2-3C20.6 4 23 7.2 21.3 11c-2.3 4.6-9.3 9-9.3 9z"/></svg></span>
+          <span class="overlay-btn lupe" data-index="${index}"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span>
         `;
         grid.appendChild(div);
       });
@@ -870,7 +884,7 @@
           const bildId = herz.dataset.id;
           const bildDoc = alleBilder.find(b => b.id === bildId);
           const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
-          const aktuell = herz.textContent.trim() === '❤️';
+          const aktuell = herz.classList.contains('aktiv');
 
           if (!aktuell && maxAuswahl) {
             const bisher = alleBilder.filter(b => b.daten.favorit).length;
@@ -887,7 +901,6 @@
           if (nurFavoriten && aktuell) {
             gridRendern();
           } else {
-            herz.textContent = aktuell ? '♡' : '❤️';
             herz.classList.toggle('aktiv', !aktuell);
           }
         });
@@ -907,6 +920,12 @@
     function lightboxEventsBinden() {
       document.querySelectorAll('.bild-wrap img').forEach(img => {
         img.addEventListener('click', () => lightboxZeigen(parseInt(img.dataset.index)));
+      });
+      document.querySelectorAll('.bild-wrap .lupe').forEach(lupe => {
+        lupe.addEventListener('click', (e) => {
+          e.stopPropagation();
+          lightboxZeigen(parseInt(lupe.dataset.index));
+        });
       });
     }
 
