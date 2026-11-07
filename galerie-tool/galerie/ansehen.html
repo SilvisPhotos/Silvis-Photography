@@ -443,6 +443,7 @@
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('g');
   let galerieDocId = null;
+  let maxAuswahl = null;
 
   async function einfacherHash(text) {
     const encoder = new TextEncoder();
@@ -498,6 +499,12 @@
           if (galerie.kundeName) {
             document.getElementById('kundenname').textContent = galerie.kundeName;
           }
+        }
+
+        maxAuswahl = (galerie.galerieTyp !== 'download' && galerie.maxAuswahl > 0) ? galerie.maxAuswahl : null;
+        if (maxAuswahl) {
+          document.getElementById('hinweis').textContent =
+            `Markiere bis zu ${maxAuswahl} Favoriten mit ♥ — klick auf ein Bild zum Vergrößern`;
         }
 
         if (galerie.galerieTyp === 'download') {
@@ -798,7 +805,13 @@
       alleBilder.push({ id: docSnap.id, daten: b, index: alleUrls.length - 1 });
     });
 
-    document.getElementById('anzahl').textContent = `${favoritenAnzahl} Bilder markiert`;
+    function anzahlAnzeigen() {
+      const n = alleBilder.filter(b => b.daten.favorit).length;
+      document.getElementById('anzahl').textContent = maxAuswahl
+        ? `${n} von ${maxAuswahl} Bildern ausgewählt`
+        : `${n} Bilder markiert`;
+    }
+    anzahlAnzeigen();
 
     let nurFavoriten = false;
 
@@ -858,12 +871,18 @@
           const bildDoc = alleBilder.find(b => b.id === bildId);
           const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
           const aktuell = herz.textContent.trim() === '❤️';
+
+          if (!aktuell && maxAuswahl) {
+            const bisher = alleBilder.filter(b => b.daten.favorit).length;
+            if (bisher >= maxAuswahl) {
+              alert(`Du hast dein Limit von ${maxAuswahl} Bildern erreicht. Nimm zuerst bei einem anderen Bild das Herz raus — oder schreib mir, wenn du weitere Bilder dazubuchen möchtest.`);
+              return;
+            }
+          }
+
           await updateDoc(bildRef, { favorit: !aktuell });
           bildDoc.daten.favorit = !aktuell;
-
-          const anzahlEl = document.getElementById('anzahl');
-          let anzahl = parseInt(anzahlEl.textContent);
-          anzahlEl.textContent = `${aktuell ? anzahl - 1 : anzahl + 1} Bilder markiert`;
+          anzahlAnzeigen();
 
           if (nurFavoriten && aktuell) {
             gridRendern();
