@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Silvis Photography — Portraits, Hochzeit, Babybauch & Familie</title>
   <meta property="og:title" content="Silvis Photography — Portraits, Hochzeit, Babybauch & Familie">
-<meta property="og:description" content="Echte Momente, draußen im Licht. Portrait-, Hochzeit -, Babybauch- und Familienfotografie in Großbottwar & Umgebung.">
+<meta property="og:description" content="Echte Momente, draußen im Licht. Portrait-, Hochzeit-, Babybauch- und Familienfotografie in Großbottwar & Umgebung.">
 <meta property="og:image" content="https://www.silvis-photography.com/images/og-preview.jpg">
 <meta property="og:url" content="https://www.silvis-photography.com/">
 <meta property="og:type" content="website">
@@ -405,6 +405,12 @@ nav{
     opacity: 0.8;
   }
 
+  /* GUTSCHEIN */
+  .gutschein-text{ color:#000; max-width:600px; margin-bottom:40px; }
+  .gutschein-info{ margin-top:36px; max-width:640px; }
+  .gutschein-info p{ font-size:15px; color:#000; margin-bottom:12px; }
+  .gutschein-info strong{ font-weight:500; }
+
   /* CONTACT & FORMULAR STYLES */
   #contact{ border-bottom:none; }
   .contact-form {
@@ -525,7 +531,7 @@ nav{
         <li><a href="#shooting-guide">Preise</a></li>
         <li><a href="#wedding">Hochzeit</a></li>
          <li><a href="#faq">FAQ</a></li>
-        
+        <li><a href="#gutschein">Gutschein</a></li>
       </ul>
       <button class="hamburger" id="hamburgerBtn" aria-label="Menü öffnen">
         <span></span><span></span><span></span>
@@ -818,7 +824,7 @@ nav{
         </details>
        <details class="faq-item">
   <summary>Wie früh sollte ich für meine Hochzeit buchen?</summary>
-  <p>Je früher, desto besser – besonders in den Sommermonaten sind Termine schnell vergeben. Idealerweise meldest du dich 6–12 Monate im Voraus<. Aber auch eine spontane Anfrage ist herzlich willkommen – schreib mir einfach und ich schaue, ob dein Wunschtermin noch frei ist! 🤍</p>
+  <p>Je früher, desto besser – besonders in den Sommermonaten sind Termine schnell vergeben. Idealerweise meldest du dich 6–12 Monate im Voraus. Aber auch eine spontane Anfrage ist herzlich willkommen – schreib mir einfach und ich schaue, ob dein Wunschtermin noch frei ist! 🤍</p>
 </details>
 
 <details class="faq-item">
@@ -865,6 +871,78 @@ nav{
 </section>
 <!-- ========================================== -->
 
+<!-- ========================================== -->
+<!-- GUTSCHEIN                                  -->
+<!-- ========================================== -->
+<section id="gutschein">
+  <div class="wrap">
+    <div class="section-label">Gutschein</div>
+    <h2>Ein Shooting zum Verschenken.</h2>
+    <p class="gutschein-text">
+      Du möchtest jemandem eine entspannte Zeit draußen schenken? Ob Portrait-, Babybauch- oder Familienshooting — gerne stelle ich dir einen Gutschein aus. Du wählst das Paket, die beschenkte Person sucht sich ihren Termin.
+    </p>
+
+    <div class="services">
+      <div class="service">
+        <h3>Mini · 149 €</h3>
+        <p>ca. 45 Minuten Shooting und 10 bearbeitete Bilder.</p>
+      </div>
+      <div class="service">
+        <h3>Standard · 249 €</h3>
+        <p>ca. 60–75 Minuten Shooting und 20 bearbeitete Bilder.</p>
+      </div>
+      <div class="service">
+        <h3>Premium · 349 €</h3>
+        <p>ca. 90 Minuten Shooting und 35 bearbeitete Bilder.</p>
+      </div>
+    </div>
+
+    <div class="gutschein-info">
+      <p><strong>So funktioniert's:</strong> Schick mir über das Kontaktformular eine Anfrage und wähle bei „Art des Shootings“ den Eintrag „Gutschein“. Ich melde mich mit den Zahlungsdetails, und nach Zahlungseingang bekommst du den Gutschein als PDF per E-Mail — zum Ausdrucken oder digital Verschenken.</p>
+        </div>
+
+    <!-- NEU: WERTGUTSCHEINE -->
+    <div class="gutschein-info">
+      <h3 style="font-family:'Fraunces',serif;
+                 font-style:italic;
+                 font-size:26px;
+                 font-weight:400;
+                 margin-bottom:24px;
+                 color:var(--moss);">
+        Oder lieber einen Wertgutschein?
+      </h3>
+
+      <div class="services">
+        <div class="service">
+          <h3>Wertgutschein · 50 €</h3>
+          <p>Ein kleiner Beitrag zu großen Erinnerungen.</p>
+        </div>
+        <div class="service">
+          <h3>Wertgutschein · 100 €</h3>
+          <p>Ein besonderes Geschenk für unvergessliche Momente.</p>
+        </div>
+      </div>
+
+      <p style="margin-top:24px;">
+        Die Wertgutscheine können auf Portrait-, Babybauch-
+        und Familienshootings angerechnet werden.
+        Ein eventuell verbleibender Restbetrag kann
+        bei einer späteren Buchung eingelöst werden.
+      </p>
+    </div>
+
+    <!-- DEIN BISHERIGER INFO-BLOCK -->
+    <div class="gutschein-info">
+      <p><strong>So funktioniert's:</strong>
+        <p>Gutscheine gelten für Portrait-, Babybauch- und Familienshootings. Gültigkeit und Einlösung stehen auf dem Gutschein.</p>
+    </div>
+
+    <div class="hero-actions" style="margin-top:28px;">
+      <a class="btn-primary" href="#contact">Gutschein anfragen</a>
+    </div>
+  </div>
+</section>
+
 
 <section id="contact">
   <div class="wrap">
@@ -900,7 +978,11 @@ nav{
             <option value="Portrait">Portrait</option>
             <option value="Babybauch">Babybauch</option>
             <option value="Familie Outdoor">Familie Outdoor</option>
-            <option value="Familie Outdoor">Hochzeit</option>
+            <option value="Hochzeit">Hochzeit</option>
+            <option value="Gutschein">Gutschein</option>
+            <option value="Wertgutschein 50 €">Wertgutschein 50 €</option>
+
+<option value="Wertgutschein 100 €">Wertgutschein 100 €</option>
             <option value="Sonstiges">Sonstiges</option>
           </select>
         </div>
