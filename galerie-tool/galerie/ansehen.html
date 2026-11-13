@@ -1,4 +1,4 @@
-ö<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -444,21 +444,55 @@
 </div>
 
 <script type="module">
-  import { db, storage } from "../firebase-config.js";
-  import { collection, getDocs, query, where, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-  import { ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+  import { db } from "../firebase-config.js";
+  import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('g');
   let galerieDocId = null;
   let maxAuswahl = null;
+  let galeriePasswort = null;
+  let auswahlAbgeschlossen = false;
 
-  async function einfacherHash(text) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(text);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+const FUNKTION_LOGIN = "https://us-central1-silvis-galerie.cloudfunctions.net/galerieLogin";
+const FUNKTION_ABSCHLUSS = "https://us-central1-silvis-galerie.cloudfunctions.net/auswahlAbschliessen";
+const FUNKTION_FAVORIT = "https://us-central1-silvis-galerie.cloudfunctions.net/galerieFavoritSetzen";
+const FUNKTION_ORIGINAL = "https://us-central1-silvis-galerie.cloudfunctions.net/galerieOriginalLink";
+
+async function originalLinkAnfordern(bildId) {
+  const ergebnis = await funktionAufrufen(FUNKTION_ORIGINAL, {
+    galerieId: galerieDocId,
+    passwort: galeriePasswort,
+    bildId
+  });
+  if (!ergebnis.url || !/^https:\/\//.test(ergebnis.url)) {
+    throw new Error('Kein gültiger Download-Link');
   }
+  return ergebnis.url;
+}
+
+async function bildAlsBlobLaden(bildId) {
+  const url = await originalLinkAnfordern(bildId);
+  const antwort = await fetch(url);
+  if (!antwort.ok) throw new Error('Bilddownload fehlgeschlagen');
+  return antwort.blob();
+}
+
+async function funktionAufrufen(url, daten) {
+  const antwort = await fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(daten)
+  });
+
+  const ergebnis = await antwort.json();
+
+  if (!antwort.ok || !ergebnis.erfolg) {
+    throw new Error(ergebnis.error || "Anfrage fehlgeschlagen");
+  }
+
+  return ergebnis;
+}
 
   async function galerieLaden() {
     const q = query(collection(db, 'galerien'), where('slug', '==', slug));
@@ -483,13 +517,18 @@
         }
       }
 
-      const hash = await einfacherHash(eingabe);
-      if (hash === galerie.passwortHash) {
+try {
+  await funktionAufrufen(FUNKTION_LOGIN, {
+    galerieId: galerieDocId,
+    passwort: eingabe
+  });
+
+  galeriePasswort = eingabe;
         document.getElementById('login-wrapper').style.display = 'none';
         document.getElementById('galerie-ansicht').style.display = 'block';
         document.getElementById('rail').style.display = 'block';
 
-        updateDoc(doc(db, 'galerien', galerieDocId), { zuletztAngesehenAm: serverTimestamp() }).catch(() => {});
+        // Zuletzt angesehen wird nicht clientseitig geschrieben (Admin-Regel).
 
         const begruessungText = galerie.kundeName
           ? `Hallo ${galerie.kundeName}! Schön, dass du da bist.`
@@ -532,14 +571,17 @@
           fertigAnzeigen(galerie.auswahlAbgeschlossen === true, galerie.auswahlAbgeschlossenAm);
           bilderLaden();
         }
-      } else {
-        document.getElementById('fehler').textContent = 'Falsches Passwort.';
-      }
+     } catch (error) {
+  console.error('Galerie-Login fehlgeschlagen:', error);
+  document.getElementById('fehler').textContent =
+    'Passwort falsch oder Galerie momentan nicht verfügbar.';
+}
     });
   }
   galerieLaden();
 
   function fertigAnzeigen(abgeschlossen, zeitstempel) {
+    auswahlAbgeschlossen = abgeschlossen;
     const btn = document.getElementById('fertig-btn');
     const status = document.getElementById('fertig-status');
     if (abgeschlossen) {
@@ -558,6 +600,7 @@
     }
   }
 document.getElementById('fertig-btn').addEventListener('click', async () => {
+  if (auswahlAbgeschlossen) return;
   if (!confirm('Deine Auswahl wird jetzt an Silvi übermittelt. Fortfahren?')) return;
 
   const btn = document.getElementById('fertig-btn');
@@ -565,10 +608,10 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
   btn.textContent = 'Wird übermittelt ...';
 
   try {
-    await updateDoc(doc(db, 'galerien', galerieDocId), {
-      auswahlAbgeschlossen: true,
-      auswahlAbgeschlossenAm: serverTimestamp()
-    });
+   await funktionAufrufen(FUNKTION_ABSCHLUSS, {
+  galerieId: galerieDocId,
+  passwort: galeriePasswort
+});
 
     fertigAnzeigen(true, {
       seconds: Math.floor(Date.now() / 1000)
@@ -596,8 +639,7 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
     for (const docSnap of snapshot.docs) {
       const b = docSnap.data();
       try {
-        const originalRef = ref(storage, `galerien/${galerieDocId}/original/${b.dateiId}.jpg`);
-        const url = await getDownloadURL(originalRef);
+        const url = await originalLinkAnfordern(docSnap.id);
         bilder.push({ id: docSnap.id, dateiId: b.dateiId, url });
       } catch (err) {
         console.error('Bild konnte nicht geladen werden:', err);
@@ -678,8 +720,7 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
         // Nur ein Bild — direkt herunterladen, keine ZIP nötig
         dlBtn.textContent = 'Lade herunter...';
         try {
-          const antwort = await fetch(ausgewaehlteBilder[0].url);
-          const blob = await antwort.blob();
+          const blob = await bildAlsBlobLaden(ausgewaehlteBilder[0].id);
           const objektUrl = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = objektUrl;
@@ -697,8 +738,7 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
         for (let i = 0; i < ausgewaehlteBilder.length; i++) {
           dlBtn.textContent = `Bereite vor... (${i + 1}/${ausgewaehlteBilder.length})`;
           try {
-            const antwort = await fetch(ausgewaehlteBilder[i].url);
-            const blob = await antwort.blob();
+            const blob = await bildAlsBlobLaden(ausgewaehlteBilder[i].id);
             zip.file(`Silvis-Photography-${i + 1}.jpg`, blob);
           } catch (err) {
             fehlgeschlagen++;
@@ -772,9 +812,10 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
 
     document.getElementById('download-alle-btn').addEventListener('click', async () => {
       const btn = document.getElementById('download-alle-btn');
+      const aktuelleBilder = await getDocs(collection(db, 'galerien', galerieDocId, 'bilder'));
       const favoritenDocs = [];
-      snapshot.forEach(docSnap => {
-        if (docSnap.data().favorit) favoritenDocs.push(docSnap.data());
+      aktuelleBilder.forEach(docSnap => {
+        if (docSnap.data().favorit) favoritenDocs.push({id: docSnap.id, daten: docSnap.data()});
       });
 
       if (favoritenDocs.length === 0) {
@@ -790,10 +831,7 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
         btn.textContent = `Bereite vor... (${i + 1}/${favoritenDocs.length})`;
         const bild = favoritenDocs[i];
         try {
-          const originalRef = ref(storage, `galerien/${galerieDocId}/original/${bild.dateiId}.jpg`);
-          const url = await getDownloadURL(originalRef);
-          const antwort = await fetch(url);
-          const blob = await antwort.blob();
+          const blob = await bildAlsBlobLaden(bild.id);
           zip.file(`Silvis-Photography-${i + 1}.jpg`, blob);
         } catch (err) {
           console.error('Konnte ein Bild nicht laden:', err);
@@ -897,9 +935,12 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
       document.querySelectorAll('.herz').forEach(herz => {
         herz.addEventListener('click', async (e) => {
           e.stopPropagation();
+          if (auswahlAbgeschlossen) {
+            alert('Deine Auswahl ist bereits abgeschlossen. Bitte melde dich bei Silvi, wenn du etwas ändern möchtest.');
+            return;
+          }
           const bildId = herz.dataset.id;
           const bildDoc = alleBilder.find(b => b.id === bildId);
-          const bildRef = doc(db, 'galerien', galerieDocId, 'bilder', bildId);
           const aktuell = herz.classList.contains('aktiv');
 
           if (!aktuell && maxAuswahl) {
@@ -910,7 +951,21 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
             }
           }
 
-          await updateDoc(bildRef, { favorit: !aktuell });
+          try {
+            herz.style.pointerEvents = 'none';
+            await funktionAufrufen(FUNKTION_FAVORIT, {
+              galerieId: galerieDocId,
+              passwort: galeriePasswort,
+              bildId,
+              favorit: !aktuell
+            });
+          } catch (fehler) {
+            console.error('Favorit konnte nicht gespeichert werden:', fehler);
+            alert('Favorit konnte nicht gespeichert werden. Bitte erneut versuchen.');
+            return;
+          } finally {
+            herz.style.pointerEvents = '';
+          }
           bildDoc.daten.favorit = !aktuell;
           anzahlAnzeigen();
 
