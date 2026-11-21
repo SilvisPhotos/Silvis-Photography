@@ -33,6 +33,7 @@
   .upload-box p{ color:var(--moss-deep); font-size:13px; margin-top:10px; }
   button{ padding:13px 28px; background:var(--moss); color:white; border:none; border-radius:6px; cursor:pointer; font-family:'Jost',sans-serif; font-size:15px; margin-top:16px; }
   button:hover{ background:var(--moss-deep); }
+  button:disabled{ opacity:.55; cursor:not-allowed; }
   .fortschritt{ margin-top:16px; color:var(--moss-deep); font-size:14px; }
   h2{ font-family:'Fraunces',serif; font-weight:500; font-size:19px; color:var(--moss); margin:36px 0 14px; }
   .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
@@ -52,11 +53,17 @@
 
     <div class="upload-box">
       <input type="file" id="datei-input" multiple accept="image/jpeg,image/png">
-      <p>Mehrere Bilder gleichzeitig auswählbar — Wasserzeichen wird automatisch erzeugt.</p>
+      <p>Mehrere Bilder gleichzeitig auswählbar — Wasserzeichen wird bei Auswahl-Galerien automatisch erzeugt.</p>
     </div>
-    <button id="upload-btn">Hochladen</button>
-    <div class="fortschritt" id="fortschritt"></div>
+    <button id="upload-btn" disabled>Hochladen</button>
+    <div class="fortschritt" id="fortschritt" role="status" aria-live="polite"></div>
 
+    <section id="vorschau-werkzeug" hidden>
+      <h2>Download-Vorschaubilder</h2>
+      <p>Erstellt kleine, geschützte Vorschaubilder aus vorhandenen Originalen. Originale und Auswahl-Galerien bleiben unverändert.</p>
+      <button type="button" id="vorschau-btn">Vorhandene Vorschaubilder erstellen</button>
+      <div class="fortschritt" id="vorschau-status" role="status" aria-live="polite"></div>
+    </section>
     <h2 id="bilder-anzahl">Bereits hochgeladen</h2>
     <div class="grid" id="bilder-grid"></div>
   </div>
@@ -64,26 +71,38 @@
   <canvas id="wz-canvas" style="display:none;"></canvas>
 
 <script type="module">
-  import { db, storage } from "../firebase-config.js";
+  import { db, storage, auth } from "../firebase-config.js";
   import { collection, addDoc, getDocs, query, where, serverTimestamp, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-  import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+  import { ref, uploadBytes, getDownloadURL, getBlob } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('g');
   let galerieId = null;
+  let galerieTyp = null;
 
   async function galerieFinden() {
-    const q = query(collection(db, 'galerien'), where('slug', '==', slug));
-    const snapshot = await getDocs(q);
-    if (snapshot.empty) { alert('Galerie nicht gefunden.'); return; }
-    const doc = snapshot.docs[0];
-    galerieId = doc.id;
-    document.getElementById('galerie-titel').textContent = doc.data().titel;
-    bilderLaden();
+    try {
+      const q = query(collection(db, 'galerien'), where('slug', '==', slug));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        alert('Galerie nicht gefunden.');
+        return;
+      }
+      const galerieDoc = snapshot.docs[0];
+      galerieId = galerieDoc.id;
+      galerieTyp = galerieDoc.data().galerieTyp;
+      document.getElementById('vorschau-werkzeug').hidden = galerieTyp !== 'download';
+      document.getElementById('galerie-titel').textContent = galerieDoc.data().titel;
+      document.getElementById('upload-btn').disabled = false;
+      await bilderLaden();
+    } catch (error) {
+      console.error('Galerie konnte nicht geladen werden:', error);
+      document.getElementById('fortschritt').textContent = 'Galerie konnte nicht geladen werden.';
+    }
   }
   galerieFinden();
 
-  // Logo einmalig laden (wird für jedes Bild als Wasserzeichen wiederverwendet)
+  // Logo einmal laden und bei Auswahl-Galerien als Wasserzeichen verwenden.
   let logoBild = null;
   function logoLaden() {
     return new Promise((resolve) => {
@@ -97,13 +116,8 @@
 
   function wasserzeichenErstellen(bild) {
     return new Promise(async (resolve) => {
-      await logoPromise; // sicherstellen, dass das Logo geladen ist, bevor wir zeichnen
-
+      await logoPromise;
       const canvas = document.getElementById('wz-canvas');
-
-      // Vorschaubild verkleinern (max. 2000px an der langen Seite) — reicht für die
-      // Web-Ansicht völlig aus und macht Verarbeitung + Upload deutlich schneller,
-      // gerade bei sehr hochauflösenden Kamerabildern wie deinen 68 Megapixeln.
       const MAX_GROESSE = 2000;
       let breite = bild.width;
       let hoehe = bild.height;
@@ -115,62 +129,183 @@
         hoehe = MAX_GROESSE;
       }
 
-      canvas.width = breite; canvas.height = hoehe;
+      canvas.width = breite;
+      canvas.height = hoehe;
       const ctx = canvas.getContext('2d');
+      if (!ctx) { resolve(null); return; }
       ctx.drawImage(bild, 0, 0, breite, hoehe);
 
-    if (logoBild) {
-  // Ein einzelnes, großes Logo mittig über dem ganzen Bild
-  const logoBreite = breite * 0.5;
-  const logoHoehe = logoBreite * (logoBild.height / logoBild.width);
-  const x = (breite - logoBreite) / 2;
-  const y = (hoehe - logoHoehe) / 2;
-
-  ctx.globalAlpha = 0.25;
-  ctx.drawImage(logoBild, x, y, logoBreite, logoHoehe);
-  ctx.globalAlpha = 1;
-} else {
-        // Falls das Logo nicht geladen werden konnte: Text-Wasserzeichen als Rückfalllösung
+      if (logoBild) {
+        const logoBreite = breite * 0.5;
+        const logoHoehe = logoBreite * (logoBild.height / logoBild.width);
+        const x = (breite - logoBreite) / 2;
+        const y = (hoehe - logoHoehe) / 2;
+        ctx.globalAlpha = 0.25;
+        ctx.drawImage(logoBild, x, y, logoBreite, logoHoehe);
+        ctx.globalAlpha = 1;
+      } else {
         ctx.font = `${Math.floor(breite / 20)}px sans-serif`;
         ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.textAlign = 'center';
         ctx.fillText('SILVIS PHOTOGRAPHY', breite / 2, hoehe / 2);
       }
-
       canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
     });
   }
 
+  // Download-Galerien erhalten eine kleine Vorschau ohne Wasserzeichen.
+  function vorschauOhneWasserzeichen(bild) {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const maxGroesse = 1200;
+      const faktor = Math.min(1, maxGroesse / Math.max(bild.width, bild.height));
+      canvas.width = Math.round(bild.width * faktor);
+      canvas.height = Math.round(bild.height * faktor);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas konnte nicht erstellt werden.'));
+        return;
+      }
+      ctx.drawImage(bild, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Vorschau konnte nicht erstellt werden.'));
+      }, 'image/jpeg', 0.8);
+    });
+  }
+
   function bildLaden(datei) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
-      img.src = URL.createObjectURL(datei);
+      const objektUrl = URL.createObjectURL(datei);
+      img.onload = () => {
+        URL.revokeObjectURL(objektUrl);
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objektUrl);
+        reject(new Error('Bilddatei konnte nicht gelesen werden.'));
+      };
+      img.src = objektUrl;
     });
   }
 
   document.getElementById('upload-btn').addEventListener('click', async () => {
     const dateien = document.getElementById('datei-input').files;
-    if (!dateien.length) return alert('Bitte Dateien auswählen.');
     const fortschrittEl = document.getElementById('fortschritt');
+    const uploadBtn = document.getElementById('upload-btn');
 
-    for (let i = 0; i < dateien.length; i++) {
-      const datei = dateien[i];
-      fortschrittEl.textContent = `Lade hoch: ${i + 1}/${dateien.length}...`;
-      const bild = await bildLaden(datei);
-      const wzBlob = await wasserzeichenErstellen(bild);
-      const dateiId = crypto.randomUUID();
-      const originalRef = ref(storage, `galerien/${galerieId}/original/${dateiId}.jpg`);
-      const previewRef = ref(storage, `galerien/${galerieId}/preview/${dateiId}.jpg`);
-      await uploadBytes(originalRef, datei);
-      await uploadBytes(previewRef, wzBlob);
-      const previewUrl = await getDownloadURL(previewRef);
-      await addDoc(collection(db, 'galerien', galerieId, 'bilder'), {
-        dateiId, previewUrl, hochgeladenAm: serverTimestamp()
-      });
+    if (!dateien.length) {
+      alert('Bitte Dateien auswählen.');
+      return;
     }
-    fortschrittEl.textContent = 'Fertig!';
-    bilderLaden();
+    if (!galerieId || !galerieTyp) {
+      alert('Der Galerietyp konnte nicht erkannt werden. Bitte prüfe die Galerie.');
+      return;
+    }
+
+    uploadBtn.disabled = true;
+    let erfolgreich = 0;
+    try {
+      for (let i = 0; i < dateien.length; i++) {
+        const datei = dateien[i];
+        fortschrittEl.textContent = `Verarbeite Bild ${i + 1} von ${dateien.length} ...`;
+        const bild = await bildLaden(datei);
+
+        // Bestehende öffentliche Vorschau bleibt mit Wasserzeichen.
+        // Unmarkierte Download-Vorschau wird separat geschützt gespeichert.
+        const previewBlob = await wasserzeichenErstellen(bild);
+        const downloadBlob = galerieTyp === 'download'
+          ? await vorschauOhneWasserzeichen(bild)
+          : null;
+        if (!previewBlob) throw new Error('Vorschau konnte nicht erstellt werden.');
+
+        const dateiId = crypto.randomUUID();
+        const originalRef = ref(storage, `galerien/${galerieId}/original/${dateiId}.jpg`);
+        const previewRef = ref(storage, `galerien/${galerieId}/preview/${dateiId}.jpg`);
+
+        fortschrittEl.textContent = `Lade Bild ${i + 1} von ${dateien.length} hoch ...`;
+        await uploadBytes(originalRef, datei, { contentType: datei.type || 'image/jpeg' });
+        await uploadBytes(previewRef, previewBlob, { contentType: 'image/jpeg' });
+        const previewUrl = await getDownloadURL(previewRef);
+        let downloadPreviewReady = false;
+        if (downloadBlob) {
+          const geschuetztRef = ref(storage, `galerien/${galerieId}/download-preview/${dateiId}.jpg`);
+          await uploadBytes(geschuetztRef, downloadBlob, {contentType: 'image/jpeg'});
+          downloadPreviewReady = true;
+        }
+        await addDoc(collection(db, 'galerien', galerieId, 'bilder'), {
+          dateiId,
+          previewUrl,
+          ...(downloadPreviewReady ? {downloadPreviewReady: true} : {}),
+          hochgeladenAm: serverTimestamp()
+        });
+        erfolgreich++;
+      }
+      fortschrittEl.textContent = `${erfolgreich} Bilder erfolgreich hochgeladen!`;
+      document.getElementById('datei-input').value = '';
+    } catch (error) {
+      console.error('Fehler beim Hochladen:', error);
+      fortschrittEl.textContent = `${erfolgreich} von ${dateien.length} Bildern abgeschlossen. Upload unterbrochen.`;
+      alert('Der Upload wurde unterbrochen. Bitte prüfe die bereits hochgeladenen Bilder, bevor du erneut hochlädst.');
+    } finally {
+      uploadBtn.disabled = false;
+      try { await bilderLaden(); } catch (error) { console.error('Bilderliste konnte nicht aktualisiert werden:', error); }
+    }
+  });
+
+
+  // Bestehende Download-Bilder einmalig nachrüsten, ohne sie neu anzulegen.
+  document.getElementById('vorschau-btn').addEventListener('click', async () => {
+    if (galerieTyp !== 'download' || !galerieId) return;
+    if (!auth.currentUser) {
+      alert('Bitte zuerst mit deinem Firebase-Admin-Konto anmelden.');
+      return;
+    }
+    if (!confirm('Geschützte Vorschaubilder für vorhandene Download-Fotos erstellen?')) return;
+    const btn = document.getElementById('vorschau-btn');
+    const status = document.getElementById('vorschau-status');
+    btn.disabled = true;
+    let erstellt = 0;
+    let fehler = 0;
+    try {
+      const snapshot = await getDocs(collection(db, 'galerien', galerieId, 'bilder'));
+      const offen = snapshot.docs.filter(d => d.data().downloadPreviewReady !== true);
+      if (!offen.length) {
+        status.textContent = 'Alle Bilder haben bereits eine geschützte Vorschau.';
+        return;
+      }
+      for (let i = 0; i < offen.length; i++) {
+        const bildDoc = offen[i];
+        const dateiId = bildDoc.data().dateiId;
+        status.textContent = `Erstelle Vorschau ${i + 1} von ${offen.length} …`;
+        try {
+          if (typeof dateiId !== 'string' || !/^[A-Za-z0-9_-]{1,200}$/.test(dateiId)) {
+            throw new Error('Ungültige Datei-ID');
+          }
+          const originalRef = ref(storage, `galerien/${galerieId}/original/${dateiId}.jpg`);
+          const originalBlob = await getBlob(originalRef);
+          const bild = await bildLaden(originalBlob);
+          const vorschau = await vorschauOhneWasserzeichen(bild);
+          const ziel = ref(storage, `galerien/${galerieId}/download-preview/${dateiId}.jpg`);
+          await uploadBytes(ziel, vorschau, {contentType: 'image/jpeg'});
+          await updateDoc(doc(db, 'galerien', galerieId, 'bilder', bildDoc.id), {
+            downloadPreviewReady: true
+          });
+          erstellt++;
+        } catch (err) {
+          fehler++;
+          console.error('Vorschau fehlgeschlagen:', bildDoc.id, err);
+        }
+      }
+      status.textContent = `${erstellt} Vorschaubilder erstellt, ${fehler} fehlgeschlagen.` +
+        (fehler ? ' Details in der Browser-Konsole.' : '');
+    } catch (err) {
+      console.error('Vorschau-Aktualisierung fehlgeschlagen:', err);
+      status.textContent = 'Vorschaubilder konnten nicht aktualisiert werden.';
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   let aktuellesTitelbild = null;
@@ -194,10 +329,15 @@
       const istTitelbild = url === aktuellesTitelbild;
       const box = document.createElement('div');
       box.className = 'bild-box' + (istTitelbild ? ' ist-titelbild' : '');
-      box.innerHTML = `
-        <img src="${url}" alt="">
-        <button class="titelbild-btn" onclick="titelbildSetzen('${url}')">${istTitelbild ? '★ Titelbild' : 'Als Titelbild wählen'}</button>
-      `;
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = '';
+      img.loading = 'lazy';
+      const btn = document.createElement('button');
+      btn.className = 'titelbild-btn';
+      btn.textContent = istTitelbild ? '★ Titelbild' : 'Als Titelbild wählen';
+      btn.addEventListener('click', () => titelbildSetzen(url));
+      box.append(img, btn);
       grid.appendChild(box);
     });
     document.getElementById('bilder-anzahl').textContent = `${snapshot.size} Bilder in dieser Galerie`;
