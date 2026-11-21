@@ -635,16 +635,36 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
     const grid = document.getElementById('grid');
     grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--ink-soft);">Bilder werden geladen …</p>';
 
-    const bilder = [];
-    for (const docSnap of snapshot.docs) {
+    
+const bilder = [];
+const dokumente = snapshot.docs;
+const batchGroesse = 6;
+
+for (let i = 0; i < dokumente.length; i += batchGroesse) {
+  const batch = dokumente.slice(i, i + batchGroesse);
+
+  const ergebnisse = await Promise.all(
+    batch.map(async (docSnap) => {
       const b = docSnap.data();
+
       try {
         const url = await originalLinkAnfordern(docSnap.id);
-        bilder.push({ id: docSnap.id, dateiId: b.dateiId, url });
+
+        return {
+          id: docSnap.id,
+          dateiId: b.dateiId,
+          url
+        };
       } catch (err) {
         console.error('Bild konnte nicht geladen werden:', err);
+        return null;
       }
-    }
+    })
+  );
+
+  bilder.push(...ergebnisse.filter(Boolean));
+}
+
 
     document.getElementById('anzahl').style.display = 'none';
     grid.innerHTML = '';
