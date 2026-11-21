@@ -458,6 +458,7 @@ const FUNKTION_LOGIN = "https://us-central1-silvis-galerie.cloudfunctions.net/ga
 const FUNKTION_ABSCHLUSS = "https://us-central1-silvis-galerie.cloudfunctions.net/auswahlAbschliessen";
 const FUNKTION_FAVORIT = "https://us-central1-silvis-galerie.cloudfunctions.net/galerieFavoritSetzen";
 const FUNKTION_ORIGINAL = "https://us-central1-silvis-galerie.cloudfunctions.net/galerieOriginalLink";
+const FUNKTION_VORSCHAU = "https://us-central1-silvis-galerie.cloudfunctions.net/galerieVorschauLinks";
 
 async function originalLinkAnfordern(bildId) {
   const ergebnis = await funktionAufrufen(FUNKTION_ORIGINAL, {
@@ -635,47 +636,44 @@ document.getElementById('fertig-btn').addEventListener('click', async () => {
     const grid = document.getElementById('grid');
     grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--ink-soft);">Bilder werden geladen …</p>';
 
-    
-const bilder = [];
-const dokumente = snapshot.docs;
-const batchGroesse = 6;
+    // Eine einzige Passwortprüfung liefert alle verfügbaren kleinen Vorschaulinks.
+    // Fehlende Vorschaubilder werden vorübergehend wie bisher als Original geladen.
+    let vorschauUrls = new Map();
+    try {
+      const ergebnis = await funktionAufrufen(FUNKTION_VORSCHAU, {
+        galerieId: galerieDocId,
+        passwort: galeriePasswort
+      });
+      vorschauUrls = new Map(ergebnis.bilder.map(b => [b.id, b.url]));
+    } catch (err) {
+      console.warn('Vorschau-Service nicht verfügbar, bisherige Anzeige wird genutzt:', err);
+    }
 
-for (let i = 0; i < dokumente.length; i += batchGroesse) {
-  const batch = dokumente.slice(i, i + batchGroesse);
-
-  const ergebnisse = await Promise.all(
-    batch.map(async (docSnap) => {
+    const bilder = await Promise.all(snapshot.docs.map(async (docSnap) => {
       const b = docSnap.data();
-
-      try {
-        const url = await originalLinkAnfordern(docSnap.id);
-
-        return {
-          id: docSnap.id,
-          dateiId: b.dateiId,
-          url
-        };
-      } catch (err) {
-        console.error('Bild konnte nicht geladen werden:', err);
-        return null;
+      let url = vorschauUrls.get(docSnap.id);
+      if (!url) {
+        try {
+          url = await originalLinkAnfordern(docSnap.id);
+        } catch (err) {
+          console.error('Bild konnte nicht geladen werden:', err);
+          return null;
+        }
       }
-    })
-  );
-
-  bilder.push(...ergebnisse.filter(Boolean));
-}
-
+      return {id: docSnap.id, dateiId: b.dateiId, url};
+    }));
+    const verfuegbareBilder = bilder.filter(Boolean);
 
     document.getElementById('anzahl').style.display = 'none';
     grid.innerHTML = '';
     const ausgewaehlt = new Set();
-    const alleUrls = bilder.map(b => b.url);
+    const alleUrls = verfuegbareBilder.map(b => b.url);
 
-    bilder.forEach((b, index) => {
+    verfuegbareBilder.forEach((b, index) => {
       const div = document.createElement('div');
       div.className = 'bild-wrap';
       div.innerHTML = `
-        <img src="${b.url}" alt="" data-index="${index}" loading="lazy" decoding="async">
+        <img src="${b.url}" alt="" loading="lazy" decoding="async" data-index="${index}">
         <div class="checkbox-overlay" data-id="${b.id}">
           <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
         </div>
@@ -730,7 +728,7 @@ for (let i = 0; i < dokumente.length; i += batchGroesse) {
 
     document.getElementById('download-ausgewaehlte-btn').addEventListener('click', async () => {
       const dlBtn = document.getElementById('download-ausgewaehlte-btn');
-      const ausgewaehlteBilder = bilder.filter(b => ausgewaehlt.has(b.id));
+      const ausgewaehlteBilder = verfuegbareBilder.filter(b => ausgewaehlt.has(b.id));
       if (ausgewaehlteBilder.length === 0) return;
 
       dlBtn.disabled = true;
