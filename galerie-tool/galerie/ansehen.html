@@ -675,7 +675,7 @@ for (let i = 0; i < dokumente.length; i += batchGroesse) {
       const div = document.createElement('div');
       div.className = 'bild-wrap';
       div.innerHTML = `
-        <img src="${b.url}" alt="" data-index="${index}">
+        <img src="${b.url}" alt="" data-index="${index}" loading="lazy" decoding="async">
         <div class="checkbox-overlay" data-id="${b.id}">
           <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
         </div>
